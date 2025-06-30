@@ -56,6 +56,8 @@ class _PdfScreenState extends State<PdfScreen> {
         scaleFactor: MediaQuery.of(context).textScaleFactor,
       );
 
+      setState(() {});
+
       _controller = WebViewController()
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
         ..loadHtmlString(htmlContent);
@@ -65,8 +67,6 @@ class _PdfScreenState extends State<PdfScreen> {
 
   @override
   Widget build(BuildContext context) {
-    double scale = MediaQuery.of(context).textScaleFactor;
-    print(scale);
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body:

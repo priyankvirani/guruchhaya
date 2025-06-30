@@ -1,29 +1,18 @@
-import 'dart:io';
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:guruchaya/helper/colors.dart';
 import 'package:guruchaya/helper/dimens.dart';
 import 'package:guruchaya/helper/global.dart';
 import 'package:guruchaya/helper/navigation.dart';
 import 'package:guruchaya/helper/routes.dart';
-import 'package:guruchaya/helper/snackbar.dart';
 import 'package:guruchaya/language/localization/language/languages.dart';
 import 'package:guruchaya/model/booking.dart';
 import 'package:guruchaya/provider/booking_provider.dart';
 import 'package:guruchaya/widgets/appbar.dart';
 import 'package:guruchaya/widgets/loading.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:pdf/pdf.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../helper/string.dart';
-
-import 'package:pdf/widgets.dart' as pw;
 
 class AllBookingScreen extends StatefulWidget {
   String busNumber;
@@ -151,26 +140,7 @@ class _AllBookingScreenState extends State<AllBookingScreen> {
                               buildTableTitle(Languages.of(context)!.seat),
                               buildTableTitle(''),
                             ],
-                            rows: bookingStore.bookingList.map((booking) {
-                              return DataRow(cells: [
-                                buildDataCell(booking.fullName ?? ''),
-                                buildDataCell(booking.place ?? ''),
-                                buildDataCell(booking.seatNumber ?? ''),
-                                DataCell(
-                                  InkWell(
-                                    onTap: () async {
-                                      await FlutterPhoneDirectCaller.callNumber(
-                                          booking.mobileNumber ?? '');
-                                    },
-                                    child: Image.asset(
-                                      Images.phone,
-                                      height: Dimens.dimen_25,
-                                      width: Dimens.dimen_25,
-                                    ),
-                                  ),
-                                ),
-                              ]);
-                            }).toList(),
+                            rows: generateListSeatWise(),
                           ),
                         ),
                       ),
@@ -184,6 +154,135 @@ class _AllBookingScreenState extends State<AllBookingScreen> {
         );
       }),
     );
+  }
+
+  List<DataRow> generateListSeatWise(){
+    var bookingStore = getBookingStore(NavigationService.context);
+    List<Booking> lists = bookingStore.bookingList;
+    lists.sort((a, b) {
+      int seatA;
+      int seatB;
+      if (a.seatNumber!.contains('-')) {
+        seatA = int.parse(a.seatNumber!.split("-").first);
+      } else {
+        seatA = int.parse(a.seatNumber!);
+      }
+      if (b.seatNumber!.contains('-')) {
+        seatB = int.parse(b.seatNumber!.split("-").first);
+      } else {
+        seatB = int.parse(b.seatNumber!);
+      }
+      return seatA.compareTo(seatB);
+    });
+
+    List<DataRow> rows = [];
+
+    List<String> seatLayout = Global.seatLayout
+        .where((seat) => seat != 'K' && seat != 'Total')
+        .toList();
+
+    for (int index = 0; index < seatLayout.length; index++) {
+      final seat = seatLayout[index];
+      final gujaratiSeat = Global.gujaratiSeatLayout[index];
+      Booking? booking;
+      if (seat.contains("-")) {
+        List splitSeatNo = bookingStore.getSplitSeatNo(seat);
+        if (splitSeatNo.isEmpty) {
+          booking = lists.firstWhere(
+                (b) {
+              return b.seatNumber == seat;
+            },
+            orElse: () => Booking(),
+          );
+        } else {
+          List<Booking> list =
+              bookingStore.getListOfBookingInfo(splitSeatNo) ?? [];
+          if (list.isEmpty) {
+            booking = lists.firstWhere(
+                  (b) {
+                return b.seatNumber == seat;
+              },
+              orElse: () => Booking(),
+            );
+          } else if (list.length == 1) {
+            booking = list.first;
+          } else if (list.length == 2) {
+            booking = Booking(
+              fullName: '${list[0].fullName}\n${list[1].fullName}',
+              seatNumber: seat,
+              cash: '${list[0].cash}\n${list[1].cash}',
+              pending: '${list[0].pending}\n${list[1].pending}',
+              mobileNumber:
+              '${list[0].mobileNumber ?? "-"}\n${list[1].mobileNumber ?? "-"}',
+              secondaryMobileNumber:
+              '${list[0].secondaryMobileNumber ?? "-"}\n${list[1].secondaryMobileNumber ?? "-"}',
+              place:
+              '${list[0].place!.split("(").first}\n${list[1].place!.split("(").first}',
+              villageName: '${list[0].villageName}\n${list[1].villageName}',
+            );
+          } else {
+            booking = lists.firstWhere(
+                  (b) {
+                return b.seatNumber == seat;
+              },
+              orElse: () => Booking(),
+            );
+          }
+        }
+      } else {
+        booking = lists.firstWhere(
+              (b) {
+            return b.seatNumber == seat;
+          },
+          orElse: () => Booking(),
+        );
+      }
+
+      String mobileNumber = booking.mobileNumber ?? '';
+
+      rows.add(DataRow(cells: [
+        buildDataCell(booking.fullName ?? ''),
+        buildDataCell(booking.place != null ? booking.place!.split("(").first  : ""),
+        buildDataCell(seat == 'K' ? '' : gujaratiSeat),
+        mobileNumber.isEmpty ? DataCell(SizedBox()) : DataCell(
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              InkWell(
+                onTap: () async {
+                  await FlutterPhoneDirectCaller.callNumber(
+                      mobileNumber.split("\n").first ?? '');
+                },
+                child: Image.asset(
+                  Images.phone,
+                  height: Dimens.dimen_25,
+                  width: Dimens.dimen_25,
+                ),
+              ),
+              if(mobileNumber.contains("\n"))
+                Padding(
+                  padding: EdgeInsets.only(left: Dimens.padding_10),
+                  child: InkWell(
+                    onTap: () async {
+                      await FlutterPhoneDirectCaller.callNumber(
+                          mobileNumber.split("\n").last ?? '');
+                    },
+                    child: Image.asset(
+                      Images.phone,
+                      height: Dimens.dimen_25,
+                      width: Dimens.dimen_25,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ]));
+
+    }
+
+    return rows;
+
   }
 
   buildTableTitle(String title) {

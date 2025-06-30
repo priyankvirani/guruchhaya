@@ -105,44 +105,49 @@ class AppDropDownState extends State<AppDropDown> {
   }
 
   dropDownTile() {
-    return Container(
-      padding: EdgeInsets.all(Dimens.padding_15),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade200,
-        borderRadius: BorderRadius.circular(Dimens.circularRadius_12),
+    return MediaQuery(
+      data: MediaQueryData(
+        textScaleFactor: 1.0,
       ),
-      child: ListView.builder(
-        shrinkWrap: !(widget.items.length > 6),
-        physics: widget.items.length > 6 ? const AlwaysScrollableScrollPhysics() :const NeverScrollableScrollPhysics(),
-        padding: EdgeInsets.zero,
-        itemBuilder: (context, index) {
-          final bool isSelected = widget.items[index] == widget.selectedItem;
-          return InkWell(
-            onTap: () {
-              widget.onItemSelected!(widget.items[index]);
-              removeDropdown();
-            },
-            child: Container(
-              margin: EdgeInsets.only(bottom: Dimens.margin_10),
-              padding:  EdgeInsets.symmetric(
-                  horizontal: Dimens.padding_15,
-                  vertical: Dimens.padding_8),
-              decoration: BoxDecoration(
-                color: isSelected ? primaryColor : Colors.transparent,
-                borderRadius: BorderRadius.circular(Dimens.circularRadius_50),
-              ),
-              child: Text(
-                widget.items[index].toString(),
-                style: TextStyle(
-                  fontFamily: Fonts.medium,
-                  fontSize: Dimens.fontSize_14,
-                  color: isSelected ? Theme.of(context).textTheme.labelMedium!.color : Theme.of(context).textTheme.labelSmall!.color,
+      child: Container(
+        padding: EdgeInsets.all(Dimens.padding_15),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(Dimens.circularRadius_12),
+        ),
+        child: ListView.builder(
+          shrinkWrap: !(widget.items.length > 6),
+          physics: widget.items.length > 6 ? const AlwaysScrollableScrollPhysics() :const NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.zero,
+          itemBuilder: (context, index) {
+            final bool isSelected = widget.items[index] == widget.selectedItem;
+            return InkWell(
+              onTap: () {
+                widget.onItemSelected!(widget.items[index]);
+                removeDropdown();
+              },
+              child: Container(
+                margin: EdgeInsets.only(bottom: Dimens.margin_10),
+                padding:  EdgeInsets.symmetric(
+                    horizontal: Dimens.padding_15,
+                    vertical: Dimens.padding_8),
+                decoration: BoxDecoration(
+                  color: isSelected ? primaryColor : Colors.transparent,
+                  borderRadius: BorderRadius.circular(Dimens.circularRadius_50),
+                ),
+                child: Text(
+                  widget.items[index].toString(),
+                  style: TextStyle(
+                    fontFamily: Fonts.medium,
+                    fontSize: Dimens.fontSize_14,
+                    color: isSelected ? Theme.of(context).textTheme.labelMedium!.color : Theme.of(context).textTheme.labelSmall!.color,
+                  ),
                 ),
               ),
-            ),
-          );
-        },
-        itemCount: widget.items.length,
+            );
+          },
+          itemCount: widget.items.length,
+        ),
       ),
     );
   }

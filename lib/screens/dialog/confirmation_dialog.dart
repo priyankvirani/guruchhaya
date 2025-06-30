@@ -37,83 +37,88 @@ class _ConfirmationDialogState extends State<ConfirmationDialog> {
         elevation: 0,
         insetPadding: EdgeInsets.symmetric(horizontal: Dimens.padding_20),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        child: SizedBox(
-          width: Responsive.isDesktop(context) ? Dimens.dimen_400 : MediaQuery.of(context).size.width,
-          child: Padding(
-            padding: EdgeInsets.all(Dimens.padding_20),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      widget.title,
-                      style: TextStyle(
-                        color: Theme.of(context).textTheme.labelSmall!.color,
-                        fontFamily: Fonts.semiBold,
-                        fontSize: Dimens.fontSize_16,
+        child: MediaQuery(
+          data: MediaQueryData(
+            textScaleFactor: 1.0,
+          ),
+          child: SizedBox(
+            width: Responsive.isDesktop(context) ? Dimens.dimen_400 : MediaQuery.of(context).size.width,
+            child: Padding(
+              padding: EdgeInsets.all(Dimens.padding_20),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        widget.title,
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.labelSmall!.color,
+                          fontFamily: Fonts.semiBold,
+                          fontSize: Dimens.fontSize_16,
+                        ),
                       ),
-                    ),
-                    InkWell(
-                      onTap: () {
-                        widget.onTap(false);
-                        NavigationService.goBack;
-                      },
-                      child: Icon(
-                        Icons.close,
-                        color: Theme.of(context).textTheme.labelSmall!.color,
-                      ),
-                    )
-                  ],
-                ),
-                SizedBox(
-                  height: Dimens.height_20,
-                ),
-                Text(
-                  widget.msg,
-                  textAlign: TextAlign.start,
-                  style: TextStyle(
-                    color: Theme.of(context)
-                        .textTheme
-                        .labelSmall!
-                        .color!
-                        .withOpacity(0.6),
-                    fontFamily: Fonts.medium,
-                    fontSize: Dimens.fontSize_13,
+                      InkWell(
+                        onTap: () {
+                          widget.onTap(false);
+                          NavigationService.goBack;
+                        },
+                        child: Icon(
+                          Icons.close,
+                          color: Theme.of(context).textTheme.labelSmall!.color,
+                        ),
+                      )
+                    ],
                   ),
-                ),
-                SizedBox(
-                  height: Dimens.height_30,
-                ),
-                Row(
-                  children: [
-                    AppButton(
-                      height: Dimens.height_35,
-                      width: Dimens.width_80,
-                      label: Languages.of(context)!.yes,
-                      textSize: Dimens.dimen_12,
-                      onPressed: () {
-                        widget.onTap(true);
-                        NavigationService.goBack;
-                      },
+                  SizedBox(
+                    height: Dimens.height_20,
+                  ),
+                  Text(
+                    widget.msg,
+                    textAlign: TextAlign.start,
+                    style: TextStyle(
+                      color: Theme.of(context)
+                          .textTheme
+                          .labelSmall!
+                          .color!
+                          .withOpacity(0.6),
+                      fontFamily: Fonts.medium,
+                      fontSize: Dimens.fontSize_13,
                     ),
-                    SizedBox(width: Dimens.width_10,),
-                    AppButton(
-                      height: Dimens.height_35,
-                      width: Dimens.width_80,
-                      textSize: Dimens.dimen_12,
-                      label: Languages.of(context)!.no,
-                      onPressed: () {
-                        widget.onTap(false);
-                        NavigationService.goBack;
-                      },
-                    ),
-                  ],
-                )
-              ],
+                  ),
+                  SizedBox(
+                    height: Dimens.height_30,
+                  ),
+                  Row(
+                    children: [
+                      AppButton(
+                        height: Dimens.height_35,
+                        width: Dimens.width_80,
+                        label: Languages.of(context)!.yes,
+                        textSize: Dimens.dimen_12,
+                        onPressed: () {
+                          widget.onTap(true);
+                          NavigationService.goBack;
+                        },
+                      ),
+                      SizedBox(width: Dimens.width_10,),
+                      AppButton(
+                        height: Dimens.height_35,
+                        width: Dimens.width_80,
+                        textSize: Dimens.dimen_12,
+                        label: Languages.of(context)!.no,
+                        onPressed: () {
+                          widget.onTap(false);
+                          NavigationService.goBack;
+                        },
+                      ),
+                    ],
+                  )
+                ],
+              ),
             ),
           ),
         ),

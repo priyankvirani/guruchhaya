@@ -54,95 +54,100 @@ class _ChangeBusNumberDialogState extends State<ChangeBusNumberDialog> {
         elevation: 0,
         insetPadding: EdgeInsets.symmetric(horizontal: Dimens.padding_20),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        child: SizedBox(
-          width: Responsive.isDesktop(context) ? Dimens.dimen_400 : MediaQuery.of(context).size.width,
-          child: Consumer<BookingController>(
-              builder: (context, bookingStore, snapshot) {
-            return SingleChildScrollView(
-              child: Padding(
-                padding: EdgeInsets.all(Dimens.padding_20),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          Languages.of(context)!.changeBusNumber,
-                          style: TextStyle(
-                            color: Theme.of(context).textTheme.labelSmall!.color,
-                            fontFamily: Fonts.medium,
-                            fontSize: Dimens.fontSize_16,
+        child: MediaQuery(
+          data: MediaQueryData(
+            textScaleFactor: 1.0,
+          ),
+          child: SizedBox(
+            width: Responsive.isDesktop(context) ? Dimens.dimen_400 : MediaQuery.of(context).size.width,
+            child: Consumer<BookingController>(
+                builder: (context, bookingStore, snapshot) {
+              return SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.all(Dimens.padding_20),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            Languages.of(context)!.changeBusNumber,
+                            style: TextStyle(
+                              color: Theme.of(context).textTheme.labelSmall!.color,
+                              fontFamily: Fonts.medium,
+                              fontSize: Dimens.fontSize_16,
+                            ),
                           ),
-                        ),
-                        InkWell(
-                          onTap: () {
-                            NavigationService.goBack;
-                          },
-                          child: Icon(
-                            Icons.close,
-                            color: Theme.of(context).textTheme.labelSmall!.color,
-                          ),
-                        )
-                      ],
-                    ),
-                    Container(
-                      margin: EdgeInsets.symmetric(vertical: Dimens.padding_20),
-                      height: Dimens.height_1,
-                      width: double.infinity,
-                      color: Colors.grey.shade200,
-                    ),
-                    Text(
-                      Languages.of(context)!.selectBusNumber,
-                      style: TextStyle(
-                        fontSize: Dimens.fontSize_12,
-                        fontFamily: Fonts.semiBold,
-                        color: Theme.of(context).textTheme.labelSmall!.color,
+                          InkWell(
+                            onTap: () {
+                              NavigationService.goBack;
+                            },
+                            child: Icon(
+                              Icons.close,
+                              color: Theme.of(context).textTheme.labelSmall!.color,
+                            ),
+                          )
+                        ],
                       ),
-                    ),
-                    SizedBox(
-                      height: Dimens.height_6,
-                    ),
-                    AppDropDown(
-                      selectedItem: changeNumber,
-                      items: bookingStore.busNumberList
-                          .where((busNumber) =>
-                              busNumber != bookingStore.selectedBusNumber)
-                          .toList(),
-                      onItemSelected: (val) {
-                        setState(() {
-                          changeNumber = val;
-                        });
-                      },
-                    ),
-                    SizedBox(
-                      height: Dimens.height_20,
-                    ),
-                    AppButton(
-                      label: Languages.of(context)!.submit,
-                      onPressed: () {
-                        if (changeNumber.isEmpty) {
-                          AlertSnackBar.error(Languages.of(context)!
-                              .selectBusNumberYouWantToChange);
-                        } else {
-                          AppDialog.confirmationDialog(context,
-                              title: Languages.of(context)!.changeBusNumber,
-                              msg: Languages.of(context)!
-                                  .areYouSureYouWantToChangeThisBusNumberForAllBooking,
-                              onTap: (val) {
-                            widget.onTap(changeNumber);
-                            NavigationService.goBack;
+                      Container(
+                        margin: EdgeInsets.symmetric(vertical: Dimens.padding_20),
+                        height: Dimens.height_1,
+                        width: double.infinity,
+                        color: Colors.grey.shade200,
+                      ),
+                      Text(
+                        Languages.of(context)!.selectBusNumber,
+                        style: TextStyle(
+                          fontSize: Dimens.fontSize_12,
+                          fontFamily: Fonts.semiBold,
+                          color: Theme.of(context).textTheme.labelSmall!.color,
+                        ),
+                      ),
+                      SizedBox(
+                        height: Dimens.height_6,
+                      ),
+                      AppDropDown(
+                        selectedItem: changeNumber,
+                        items: bookingStore.busNumberList
+                            .where((busNumber) =>
+                                busNumber != bookingStore.selectedBusNumber)
+                            .toList(),
+                        onItemSelected: (val) {
+                          setState(() {
+                            changeNumber = val;
                           });
-                        }
-                      },
-                    )
-                  ],
+                        },
+                      ),
+                      SizedBox(
+                        height: Dimens.height_20,
+                      ),
+                      AppButton(
+                        label: Languages.of(context)!.submit,
+                        onPressed: () {
+                          if (changeNumber.isEmpty) {
+                            AlertSnackBar.error(Languages.of(context)!
+                                .selectBusNumberYouWantToChange);
+                          } else {
+                            AppDialog.confirmationDialog(context,
+                                title: Languages.of(context)!.changeBusNumber,
+                                msg: Languages.of(context)!
+                                    .areYouSureYouWantToChangeThisBusNumberForAllBooking,
+                                onTap: (val) {
+                              widget.onTap(changeNumber);
+                              NavigationService.goBack;
+                            });
+                          }
+                        },
+                      )
+                    ],
+                  ),
                 ),
-              ),
-            );
-          }),
+              );
+            }),
+          ),
         ),
       ),
     );

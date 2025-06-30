@@ -86,6 +86,9 @@ class _MyAppState extends State<MyApp> {
             splitScreenMode: true,
             useInheritedMediaQuery: true,
             child: MaterialApp(
+              builder: (BuildContext context, Widget? child) {
+                return child!;
+              },
               debugShowCheckedModeBanner: false,
               title: Constants.appName,
               locale: _locale,

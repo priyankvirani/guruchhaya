@@ -21,30 +21,35 @@ class BackAppBar extends StatelessWidget {
       top: true,
       right: false,
       bottom: false,
-      child: Row(
-        children: [
-          InkWell(
-            onTap: onBack ?? ()  => NavigationService.goBack,
-            child: Image.asset(
-              Images.back,
-              height: Dimens.height_25,
-            ),
-          ),
-          SizedBox(
-            width: Dimens.width_10,
-          ),
-          Expanded(
-            child: Text(
-              title,
-              style: TextStyle(
-                color: Theme.of(context).textTheme.labelSmall!.color,
-                fontSize: Dimens.fontSize_16,
-                fontFamily: Fonts.semiBold,
+      child: MediaQuery(
+        data: MediaQueryData(
+          textScaleFactor: 1.0,
+        ),
+        child: Row(
+          children: [
+            InkWell(
+              onTap: onBack ?? ()  => NavigationService.goBack,
+              child: Image.asset(
+                Images.back,
+                height: Dimens.height_25,
               ),
             ),
-          ),
-          ...actions!
-        ],
+            SizedBox(
+              width: Dimens.width_10,
+            ),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.labelSmall!.color,
+                  fontSize: Dimens.fontSize_16,
+                  fontFamily: Fonts.semiBold,
+                ),
+              ),
+            ),
+            ...actions!
+          ],
+        ),
       ),
     );
   }

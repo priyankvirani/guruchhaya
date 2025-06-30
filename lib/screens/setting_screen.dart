@@ -1,33 +1,14 @@
-import 'dart:io';
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:guruchaya/helper/app_dialog.dart';
 import 'package:guruchaya/helper/colors.dart';
 import 'package:guruchaya/helper/dimens.dart';
-import 'package:guruchaya/helper/snackbar.dart';
 import 'package:guruchaya/language/language_data.dart';
 import 'package:guruchaya/language/localization/language/languages.dart';
-import 'package:guruchaya/model/booking.dart';
 import 'package:guruchaya/provider/booking_provider.dart';
-import 'package:guruchaya/widgets/app_button.dart';
-import 'package:guruchaya/widgets/app_drop_down.dart';
 import 'package:guruchaya/widgets/appbar.dart';
 import 'package:guruchaya/widgets/loading.dart';
-import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:pdf/pdf.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:syncfusion_flutter_core/theme.dart';
-import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
-
 import '../helper/string.dart';
-
-import 'package:pdf/widgets.dart' as pw;
-
 import '../language/localization/local_constant.dart';
 
 class SettingScreen extends StatefulWidget {
@@ -67,29 +48,36 @@ class _SettingScreenState extends State<SettingScreen> {
           Consumer<BookingController>(builder: (context, bookStore, snapshot) {
         return Stack(
           children: [
-            Padding(
-              padding: EdgeInsets.all(Dimens.padding_20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.only( bottom:Dimens.padding_20),
-                    child: BackAppBar(
-                      title: Languages.of(context)!.setting,
-                    ),
+            SafeArea(
+              child: MediaQuery(
+                data: MediaQueryData(
+                  textScaleFactor: 1.0,
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(Dimens.padding_20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only( bottom:Dimens.padding_20),
+                        child: BackAppBar(
+                          title: Languages.of(context)!.setting,
+                        ),
+                      ),
+                      settingTile(
+                        title: Languages.of(context)!.language,
+                        image: Images.language,
+                        isLanguage: true,
+                        onPressed: () {
+                          AppDialog.languageDialog(context, onTap: (val) {
+                            changeLanguage(context, val.languageCode);
+                            languageLoad();
+                          });
+                        },
+                      ),
+                    ],
                   ),
-                  settingTile(
-                    title: Languages.of(context)!.language,
-                    image: Images.language,
-                    isLanguage: true,
-                    onPressed: () {
-                      AppDialog.languageDialog(context, onTap: (val) {
-                        changeLanguage(context, val.languageCode);
-                        languageLoad();
-                      });
-                    },
-                  ),
-                ],
+                ),
               ),
             ),
             LoadingWithBackground(bookStore.loading)
@@ -133,7 +121,7 @@ class _SettingScreenState extends State<SettingScreen> {
               title,
               style: TextStyle(
                   fontFamily: Fonts.semiBold,
-                  fontSize: Dimens.fontSize_12,
+                  fontSize: Dimens.fontSize_14,
                   color:
                       color ?? Theme.of(context).textTheme.titleLarge!.color),
             ),

@@ -53,6 +53,7 @@ class _PdfScreenState extends State<PdfScreen> {
       htmlContent = Global.getHtmlContent(
         date: widget.date,
         busNumber: widget.busNumber,
+        scaleFactor: MediaQuery.of(context).textScaleFactor,
       );
 
       _controller = WebViewController()
@@ -64,6 +65,8 @@ class _PdfScreenState extends State<PdfScreen> {
 
   @override
   Widget build(BuildContext context) {
+    double scale = MediaQuery.of(context).textScaleFactor;
+    print(scale);
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body:

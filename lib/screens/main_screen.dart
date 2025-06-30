@@ -35,8 +35,10 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       var bookingStore = getBookingStore(context);
-      bookingStore.getAllBusNumber().then((val){
-        getAllBookedSeat();
+      bookingStore.getAllBusNumber().then((val) async {
+        await getAllBookedSeat();
+        await getBookingStore(context).getAllPlace();
+        await getBookingStore(context).getAllVillage();
       });
     });
   }
@@ -134,6 +136,7 @@ class _MainScreenState extends State<MainScreen> {
             },
             onSubmit: (name, place, number, village, cash, amount,
                 secondaryNumber, isSplit, splitSeatNumber) async {
+              print("splitSeatNumber : $splitSeatNumber");
               Booking? booking = bookingStore.bookingList
                   .where((b) => b.seatNumber == splitSeatNumber)
                   .firstOrNull;
@@ -326,321 +329,328 @@ class _MainScreenState extends State<MainScreen> {
           builder: (context, bookingStore, snapshot) {
         return Stack(
           children: [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: Dimens.padding_20),
-              child: Column(
-                crossAxisAlignment: Responsive.isDesktop(context) ? CrossAxisAlignment.center : CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: Dimens.padding_20),
-                    child: MainAppBar(
-                      title: Languages.of(context)!.guruchhayaTravels,
-                      actions: [
-                        InkWell(
-                          onTap: () {
-                            NavigationService.navigateTo(Routes.setting);
-                          },
-                          child: Icon(
-                            Icons.settings,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            SafeArea(
+              child: MediaQuery(
+                data: MediaQueryData(
+                  textScaleFactor: 1.0,
+                ),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: Dimens.padding_20),
+                  child: Column(
+                    crossAxisAlignment: Responsive.isDesktop(context) ? CrossAxisAlignment.center : CrossAxisAlignment.start,
                     children: [
-                      InkWell(
-                        onTap: () {
-                          showDatePicker(
-                            context: context,
-                            initialDate: selectedDate,
-                            firstDate: DateTime.now().subtract(Duration(days: 14)),
-                            lastDate: DateTime.now().add(Duration(days: 30)),
-                          ).then((pickedDate) {
-                            if (pickedDate != null &&
-                                pickedDate != selectedDate) {
-                              setState(() {
-                                selectedDate = pickedDate;
+                      Padding(
+                        padding: EdgeInsets.symmetric(vertical: Dimens.padding_20),
+                        child: MainAppBar(
+                          title: Languages.of(context)!.guruchhayaTravels,
+                          actions: [
+                            InkWell(
+                              onTap: () {
+                                NavigationService.navigateTo(Routes.setting);
+                              },
+                              child: Icon(
+                                Icons.settings,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          InkWell(
+                            onTap: () {
+                              showDatePicker(
+                                context: context,
+                                initialDate: selectedDate,
+                                firstDate: DateTime.now().subtract(Duration(days: 14)),
+                                lastDate: DateTime.now().add(Duration(days: 30)),
+                              ).then((pickedDate) {
+                                if (pickedDate != null &&
+                                    pickedDate != selectedDate) {
+                                  setState(() {
+                                    selectedDate = pickedDate;
+                                  });
+                                  getAllBookedSeat();
+                                }
                               });
-                              getAllBookedSeat();
-                            }
-                          });
-                        },
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: Dimens.padding_20,
-                              vertical: Dimens.padding_15),
-                          decoration: BoxDecoration(
-                              border: Border.all(
-                                color: primaryColor,
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: Dimens.padding_20,
+                                  vertical: Dimens.padding_15),
+                              decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: primaryColor,
+                                  ),
+                                  borderRadius: BorderRadius.circular(
+                                      Dimens.circularRadius_12)),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    DateFormat('dd/MM/yyyy').format(selectedDate),
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .labelSmall!
+                                          .color,
+                                      fontSize: Dimens.fontSize_14,
+                                      fontFamily: Fonts.medium,
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: Dimens.dimen_10,
+                                  ),
+                                  Image.asset(
+                                    Images.dropDown,
+                                    height: Dimens.height_15,
+                                    width: Dimens.height_15,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall!
+                                        .color,
+                                  )
+                                ],
                               ),
-                              borderRadius: BorderRadius.circular(
-                                  Dimens.circularRadius_12)),
-                          child: Row(
-                            children: [
-                              Text(
-                                DateFormat('dd/MM/yyyy').format(selectedDate),
-                                style: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .labelSmall!
-                                      .color,
-                                  fontSize: Dimens.fontSize_14,
-                                  fontFamily: Fonts.medium,
-                                ),
-                              ),
-                              SizedBox(
-                                width: Dimens.dimen_10,
-                              ),
-                              Image.asset(
-                                Images.dropDown,
-                                height: Dimens.height_15,
-                                width: Dimens.height_15,
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .labelSmall!
-                                    .color,
-                              )
-                            ],
+                            ),
+                          ),
+                          SizedBox(
+                            width: Dimens.width_120,
+                            child: AppDropDown(
+                              selectedItem: bookingStore.selectedBusNumber,
+                              items: bookingStore.busNumberList,
+                              onItemSelected: (val) {
+                                selected.clear();
+                                bookingStore.changeBusNumber(val);
+                                getAllBookedSeat();
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        height: Dimens.height_20,
+                      ),
+                      SizedBox(
+                        width: Responsive.isDesktop(context) ? MediaQuery.of(context).size.width / 3 : MediaQuery.of(context).size.width,
+                        child: Row(
+                          children: [
+                            headerTile(
+                              boxSize: boxSize,
+                              title: Languages.of(context)!.upper,
+                            ),
+                            SizedBox(
+                              width: Dimens.width_10,
+                            ),
+                            headerTile(
+                              boxSize: boxSize,
+                              title: Languages.of(context)!.lower,
+                            ),
+                            Expanded(child: SizedBox()),
+                            headerTile(
+                              boxSize: boxSize * 1.75,
+                              title: Languages.of(context)!.upper,
+                            ),
+                            SizedBox(
+                              width: Dimens.width_10,
+                            ),
+                            headerTile(
+                              boxSize: boxSize * 1.75,
+                              title: Languages.of(context)!.lower,
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        height: Dimens.height_10,
+                      ),
+                      Expanded(
+                        child: SizedBox(
+                          width: Responsive.isDesktop(context) ? MediaQuery.of(context).size.width / 3 : MediaQuery.of(context).size.width,
+                          child: RefreshIndicator(
+                            onRefresh: () async {
+                              selected.clear();
+                              await getAllBookedSeat();
+                            },
+                            child: ListView.separated(
+                              physics: AlwaysScrollableScrollPhysics(),
+                              padding: EdgeInsets.zero,
+                              itemBuilder: (context, index) {
+                                int pos = index * 6;
+                                return seatRow(
+                                  single1: pos + 1,
+                                  single2: pos + 2,
+                                  doubleLower1: pos + 3,
+                                  doubleLower2: pos + 4,
+                                  doubleUpper1: pos + 5,
+                                  doubleUpper2: pos + 6,
+                                );
+                              },
+                              separatorBuilder: (context, index) {
+                                return SizedBox(
+                                  height: Dimens.height_10,
+                                );
+                              },
+                              itemCount: 6,
+                            ),
                           ),
                         ),
                       ),
-                      SizedBox(
-                        width: Dimens.width_120,
-                        child: AppDropDown(
-                          selectedItem: bookingStore.selectedBusNumber,
-                          items: bookingStore.busNumberList,
-                          onItemSelected: (val) {
-                            selected.clear();
-                            bookingStore.changeBusNumber(val);
-                            getAllBookedSeat();
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: Dimens.height_20,
-                  ),
-                  SizedBox(
-                    width: Responsive.isDesktop(context) ? MediaQuery.of(context).size.width / 3 : MediaQuery.of(context).size.width,
-                    child: Row(
-                      children: [
-                        headerTile(
-                          boxSize: boxSize,
-                          title: Languages.of(context)!.upper,
-                        ),
-                        SizedBox(
-                          width: Dimens.width_10,
-                        ),
-                        headerTile(
-                          boxSize: boxSize,
-                          title: Languages.of(context)!.lower,
-                        ),
-                        Expanded(child: SizedBox()),
-                        headerTile(
-                          boxSize: boxSize * 1.75,
-                          title: Languages.of(context)!.upper,
-                        ),
-                        SizedBox(
-                          width: Dimens.width_10,
-                        ),
-                        headerTile(
-                          boxSize: boxSize * 1.75,
-                          title: Languages.of(context)!.lower,
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    height: Dimens.height_10,
-                  ),
-                  Expanded(
-                    child: SizedBox(
-                      width: Responsive.isDesktop(context) ? MediaQuery.of(context).size.width / 3 : MediaQuery.of(context).size.width,
-                      child: RefreshIndicator(
-                        onRefresh: () async {
-                          selected.clear();
-                          await getAllBookedSeat();
-                        },
-                        child: ListView.separated(
-                          physics: AlwaysScrollableScrollPhysics(),
-                          padding: EdgeInsets.zero,
-                          itemBuilder: (context, index) {
-                            int pos = index * 6;
-                            return seatRow(
-                              single1: pos + 1,
-                              single2: pos + 2,
-                              doubleLower1: pos + 3,
-                              doubleLower2: pos + 4,
-                              doubleUpper1: pos + 5,
-                              doubleUpper2: pos + 6,
-                            );
-                          },
-                          separatorBuilder: (context, index) {
-                            return SizedBox(
-                              height: Dimens.height_10,
-                            );
-                          },
-                          itemCount: 6,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Row(
-                    mainAxisAlignment: Responsive.isDesktop(context) ? MainAxisAlignment.center : MainAxisAlignment.start,
-                    children: [
-                      Container(
-                        height: Dimens.height_20,
-                        width: Dimens.height_20,
-                        decoration: BoxDecoration(
-                          color: primaryColor,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                      ),
-                      SizedBox(
-                        width: Dimens.width_10,
-                      ),
-                      Text(
-                        Languages.of(context)!.booked,
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.labelSmall!.color,
-                          fontSize: Dimens.fontSize_14,
-                        ),
-                      ),
-                      SizedBox(
-                        width: Dimens.width_30,
-                      ),
-                      Container(
-                        height: Dimens.height_20,
-                        width: Dimens.height_20,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                      ),
-                      SizedBox(
-                        width: Dimens.width_10,
-                      ),
-                      Text(
-                        Languages.of(context)!.available,
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.labelSmall!.color,
-                          fontSize: Dimens.fontSize_14,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: Dimens.height_20,
-                  ),
-                  if (bookingStore.bookingList.isNotEmpty)
-                    Padding(
-                      padding: EdgeInsets.only(bottom: Dimens.padding_10),
-                      child: InkWell(
-                        onTap: () {
-                          AppDialog.changeBusNumberDialog(
-                            context,
-                            onSubmit: (changeNumber) async {
-                              await bookingStore.changeAllBookingBusNumber(
-                                oldBusNumber: bookingStore.selectedBusNumber,
-                                newBusNumber: changeNumber,
-                                date: DateFormat("dd-MM-yyyy")
-                                    .format(selectedDate),
-                              );
-                              getAllBookedSeat();
-                            },
-                            currentBusNumber: bookingStore.selectedBusNumber,
-                          );
-                        },
-                        child: Text(
-                          Languages.of(context)!.changeBusNumberForAllBooking,
-                          style: TextStyle(
-                              color: skyBlue,
+                      Row(
+                        mainAxisAlignment: Responsive.isDesktop(context) ? MainAxisAlignment.center : MainAxisAlignment.start,
+                        children: [
+                          Container(
+                            height: Dimens.height_20,
+                            width: Dimens.height_20,
+                            decoration: BoxDecoration(
+                              color: primaryColor,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                          ),
+                          SizedBox(
+                            width: Dimens.width_10,
+                          ),
+                          Text(
+                            Languages.of(context)!.booked,
+                            style: TextStyle(
+                              color: Theme.of(context).textTheme.labelSmall!.color,
                               fontSize: Dimens.fontSize_14,
-                              fontFamily: Fonts.semiBold,
-                              fontWeight: FontWeight.w700,
-                              decoration: TextDecoration.underline,
-                              decorationColor: skyBlue),
-                        ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: Dimens.width_30,
+                          ),
+                          Container(
+                            height: Dimens.height_20,
+                            width: Dimens.height_20,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                          ),
+                          SizedBox(
+                            width: Dimens.width_10,
+                          ),
+                          Text(
+                            Languages.of(context)!.available,
+                            style: TextStyle(
+                              color: Theme.of(context).textTheme.labelSmall!.color,
+                              fontSize: Dimens.fontSize_14,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  AppButton(
-                    label: Languages.of(context)!.bookTicket,
-                    onPressed: () {
-                      if (selected.isEmpty) {
-                        AlertSnackBar.error(
-                            Languages.of(context)!.pleaseSelectSeat);
-                      } else {
-                        String? seatNo;
-                        bool isSplitOption = false;
-                        if (selected.length == 1 &&
-                            selected.first.contains("-")) {
-                          isSplitOption = true;
-                          seatNo = selected.first;
-                        }
-                        AppDialog.passengerDetailsDialog(
-                          context,
-                          isSplitOption: isSplitOption,
-                          seatNo: seatNo,
-                          onSubmit: (name,
-                              place,
-                              number,
-                              village,
-                              cash,
-                              pending,
-                              secondaryNumber,
-                              isSplit,
-                              splitSeatNumber) async {
-                            for (int i = 0; i < selected.length; i++) {
-                              String seatNumber = selected.elementAt(i);
-                              await bookingStore.bookSeat(
-                                busNumber: bookingStore.selectedBusNumber,
-                                seatNumber: (isSplit ?? false)
-                                    ? splitSeatNumber!
-                                    : seatNumber,
-                                date: DateFormat('dd-MM-yyyy')
-                                    .format(selectedDate),
-                                fullName: name,
-                                place: place,
-                                cash: cash,
-                                mobileNumber: number,
-                                villageName: village,
-                                pending: pending,
-                                secondaryNumber: secondaryNumber,
-                                isSplit: isSplit ?? false,
+                      SizedBox(
+                        height: Dimens.height_20,
+                      ),
+                      if (bookingStore.bookingList.isNotEmpty)
+                        Padding(
+                          padding: EdgeInsets.only(bottom: Dimens.padding_10),
+                          child: InkWell(
+                            onTap: () {
+                              AppDialog.changeBusNumberDialog(
+                                context,
+                                onSubmit: (changeNumber) async {
+                                  await bookingStore.changeAllBookingBusNumber(
+                                    oldBusNumber: bookingStore.selectedBusNumber,
+                                    newBusNumber: changeNumber,
+                                    date: DateFormat("dd-MM-yyyy")
+                                        .format(selectedDate),
+                                  );
+                                  getAllBookedSeat();
+                                },
+                                currentBusNumber: bookingStore.selectedBusNumber,
                               );
-                              getAllBookedSeat();
+                            },
+                            child: Text(
+                              Languages.of(context)!.changeBusNumberForAllBooking,
+                              style: TextStyle(
+                                  color: skyBlue,
+                                  fontSize: Dimens.fontSize_14,
+                                  fontFamily: Fonts.semiBold,
+                                  fontWeight: FontWeight.w700,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: skyBlue),
+                            ),
+                          ),
+                        ),
+                      AppButton(
+                        label: Languages.of(context)!.bookTicket,
+                        onPressed: () {
+                          if (selected.isEmpty) {
+                            AlertSnackBar.error(
+                                Languages.of(context)!.pleaseSelectSeat);
+                          } else {
+                            String? seatNo;
+                            bool isSplitOption = false;
+                            if (selected.length == 1 &&
+                                selected.first.contains("-")) {
+                              isSplitOption = true;
+                              seatNo = selected.first;
                             }
-                            selected.clear();
+                            AppDialog.passengerDetailsDialog(
+                              context,
+                              isSplitOption: isSplitOption,
+                              seatNo: seatNo,
+                              onSubmit: (name,
+                                  place,
+                                  number,
+                                  village,
+                                  cash,
+                                  pending,
+                                  secondaryNumber,
+                                  isSplit,
+                                  splitSeatNumber) async {
+                                for (int i = 0; i < selected.length; i++) {
+                                  String seatNumber = selected.elementAt(i);
+                                  await bookingStore.bookSeat(
+                                    busNumber: bookingStore.selectedBusNumber,
+                                    seatNumber: (isSplit ?? false)
+                                        ? splitSeatNumber!
+                                        : seatNumber,
+                                    date: DateFormat('dd-MM-yyyy')
+                                        .format(selectedDate),
+                                    fullName: name,
+                                    place: place,
+                                    cash: i == 0 ? cash : "0",
+                                    mobileNumber: number,
+                                    villageName: village,
+                                    pending: i == 0 ? pending : "0",
+                                    secondaryNumber: secondaryNumber,
+                                    isSplit: isSplit ?? false,
+                                  );
+                                  getAllBookedSeat();
+                                }
+                                selected.clear();
+                              },
+                            );
+                          }
+                        },
+                        width: Responsive.isDesktop(context) ? MediaQuery.of(context).size.width / 3 : MediaQuery.of(context).size.width,
+                      ),
+                      if (bookingStore.bookingList.isNotEmpty)
+                        AppButton(
+                          margin: EdgeInsets.only(top: Dimens.dimen_10),
+                          label: Languages.of(context)!.allBooking,
+                          bgColor: Colors.transparent,
+                          isBorder: true,
+                          textColor: primaryColor,
+                          width: Responsive.isDesktop(context) ? MediaQuery.of(context).size.width / 3 : MediaQuery.of(context).size.width,
+                          onPressed: () {
+                            NavigationService.navigateTo(Routes.allBooking,
+                                arguments: {
+                                  'busNumber': bookingStore.selectedBusNumber,
+                                  'date': DateFormat('dd/MM/yyyy')
+                                      .format(selectedDate)
+                                });
                           },
-                        );
-                      }
-                    },
-                    width: Responsive.isDesktop(context) ? MediaQuery.of(context).size.width / 3 : MediaQuery.of(context).size.width,
+                        ),
+                      SizedBox(
+                        height: Dimens.height_30,
+                      ),
+                    ],
                   ),
-                  if (bookingStore.bookingList.isNotEmpty)
-                    AppButton(
-                      margin: EdgeInsets.only(top: Dimens.dimen_10),
-                      label: Languages.of(context)!.allBooking,
-                      bgColor: Colors.transparent,
-                      isBorder: true,
-                      textColor: primaryColor,
-                      width: Responsive.isDesktop(context) ? MediaQuery.of(context).size.width / 3 : MediaQuery.of(context).size.width,
-                      onPressed: () {
-                        NavigationService.navigateTo(Routes.allBooking,
-                            arguments: {
-                              'busNumber': bookingStore.selectedBusNumber,
-                              'date': DateFormat('dd/MM/yyyy')
-                                  .format(selectedDate)
-                            });
-                      },
-                    ),
-                  SizedBox(
-                    height: Dimens.height_30,
-                  ),
-                ],
+                ),
               ),
             ),
             LoadingWithBackground(bookingStore.loading)

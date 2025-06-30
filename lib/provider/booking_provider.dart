@@ -219,9 +219,6 @@ class BookingController extends ChangeNotifier {
         .from('place')
         .select('*')
         .eq('bus_number', selectedBusNumber);
-    if (response == null) {
-      throw Exception('No data found');
-    }
 
     placeList.clear();
     for (var item in response) {
@@ -239,9 +236,7 @@ class BookingController extends ChangeNotifier {
         .from('village')
         .select('*')
         .eq('bus_number', selectedBusNumber);
-    if (response == null) {
-      throw Exception('No data found');
-    }
+
     villageList = response.map((row) => (row['village'] ?? '')).toList();
     notifyListeners();
   }
@@ -251,9 +246,7 @@ class BookingController extends ChangeNotifier {
   Future<void> getAllBusNumber() async {
     final supabase = Supabase.instance.client;
     final response = await supabase.from('bus_numbers').select('bus_number');
-    if (response == null) {
-      throw Exception('No data found');
-    }
+
     busNumberList = response.map((row) => (row['bus_number'] ?? '')).toList();
     changeBusNumber(busNumberList.first);
     notifyListeners();

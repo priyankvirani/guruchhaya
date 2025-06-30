@@ -36,10 +36,15 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: EdgeInsets.only(left: Dimens.dimen_30),
-          child: Lottie.asset(LottieFile.bus, width: Dimens.width_400),
+      body: MediaQuery(
+        data: MediaQueryData(
+          textScaleFactor: 1.0,
+        ),
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.only(left: Dimens.dimen_30),
+            child: Lottie.asset(LottieFile.bus, width: Dimens.width_400),
+          ),
         ),
       ),
     );

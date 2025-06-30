@@ -65,9 +65,9 @@ class _PassengerDetailsDialogState extends State<PassengerDetailsDialog> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      getBookingStore(context).getAllPlace();
-      getBookingStore(context).getAllVillage();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      await getBookingStore(context).getAllPlace();
+      await getBookingStore(context).getAllVillage();
       setState(() {
         isSplitOption = widget.isSplitOption ?? false;
         seat = widget.seatNo ?? '';
@@ -173,16 +173,13 @@ class _PassengerDetailsDialogState extends State<PassengerDetailsDialog> {
                                     fontFamily: Fonts.medium,
                                   ),
                                 ),
-                                Transform.scale(
-                                  scale: 0.7,
-                                  child: CupertinoSwitch(
-                                    value: isSplit,
-                                    onChanged: widget.booking == null ? (bool value) {
-                                      setState(() {
-                                        isSplit = value;
-                                      });
-                                    } : null,
-                                  ),
+                                CupertinoSwitch(
+                                  value: isSplit,
+                                  onChanged: widget.booking == null ? (bool value) {
+                                    setState(() {
+                                      isSplit = value;
+                                    });
+                                  } : null,
                                 ),
                                 if (isSplit)
                                   Container(

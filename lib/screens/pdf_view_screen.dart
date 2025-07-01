@@ -50,7 +50,7 @@ class _PdfScreenState extends State<PdfScreen> {
       var bookingStore = getBookingStore(context);
       bookingStore.changeLoadingStatus(true);
 
-      htmlContent = Global.getHtmlContent(
+      htmlContent = await Global.getHtmlContent(
         date: widget.date,
         busNumber: widget.busNumber,
         scaleFactor: MediaQuery.of(context).textScaleFactor,

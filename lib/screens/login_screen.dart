@@ -102,6 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               height: Dimens.height_30,
                             ),
                             AppButton(
+                              width: Responsive.isDesktop(context) ? MediaQuery.of(context).size.width / 3 : MediaQuery.of(context).size.width,
                               label: Languages.of(context)!.submit,
                               onPressed: () async {
                                 if (formKey.currentState!.validate()) {

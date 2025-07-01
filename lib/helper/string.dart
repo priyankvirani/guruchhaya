@@ -6,6 +6,7 @@ class Images {
   static const String share = 'assets/icons/share.png';
   static const String phone = 'assets/icons/phone.png';
   static const String language = 'assets/icons/language.png';
+  static const String guruchhaya = 'assets/images/guru.png';
 }
 
 class Fonts {

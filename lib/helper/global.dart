@@ -1,8 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_html_to_pdf/flutter_html_to_pdf.dart';
 import 'package:guruchaya/helper/navigation.dart';
 import 'package:guruchaya/helper/snackbar.dart';
+import 'package:guruchaya/helper/string.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
@@ -77,8 +80,14 @@ class Global {
     'Total'
   ];
 
-  static String getHtmlContent(
-      {required String date, required String busNumber,required double scaleFactor}) {
+  static Future<String> getHtmlContent(
+      {required String date,
+      required String busNumber,
+      required double scaleFactor}) async {
+    final ByteData imageBytes = await rootBundle.load(Images.guruchhaya);
+    final Uint8List bytes = imageBytes.buffer.asUint8List();
+    final String base64Image = base64Encode(bytes);
+
     String htmlContent = '''
 <!DOCTYPE html>
 <html lang="gu">
@@ -94,7 +103,7 @@ class Global {
   <style>
     /* Prevent system font scaling */
     html, body {
-      font-size: ${14/scaleFactor}px;
+      font-size: ${14 / scaleFactor}px;
       -webkit-text-size-adjust: none !important;
       -moz-text-size-adjust: none !important;
       -ms-text-size-adjust: none !important;
@@ -119,7 +128,7 @@ class Global {
     .header-line {
       display: flex;
       justify-content: space-between;
-      font-size: ${10/scaleFactor}px;
+      font-size: ${10 / scaleFactor}px;
       margin-bottom: 10px;
     }
 
@@ -137,29 +146,15 @@ class Global {
       gap: 6px;
     }
 
-    .fancy-title .big {
-      font-family: 'Kumar One', cursive;
-      font-size: ${36/scaleFactor}px;
-      color: #B80000;
-      text-shadow: 1px 1px 2px rgba(255, 0, 0, 0.3);
-    }
-
-    .fancy-title .small {
-      font-family: 'Kumar One', cursive;
-      font-size: ${20/scaleFactor}px;
-      font-weight: 500;
-      color: #B80000;
-      text-shadow: 1px 1px 2px rgba(255, 0, 0, 0.3);
-    }
 
     .right-info {
-      font-size: ${12/scaleFactor}px;
+      font-size: ${12 / scaleFactor}px;
       text-align: right;
       line-height: 1.8;
     }
 
     .info-row {
-      font-size: ${12/scaleFactor}px;
+      font-size: ${12 / scaleFactor}px;
       display: flex;
       justify-content: space-between;
       flex-wrap: wrap;
@@ -182,7 +177,7 @@ class Global {
       border: 1px solid #000;
       text-align: center;
       padding: 3px 2px; 
-      font-size: ${14/scaleFactor}px;
+      font-size: ${14 / scaleFactor}px;
       white-space: normal;
       word-break: break-word;  
     }
@@ -213,8 +208,31 @@ class Global {
 
     .total-section {
       margin-top: 5px;
-      font-size: ${11/scaleFactor}px;
+      font-size: ${11 / scaleFactor}px;
     }
+    
+.title-driver-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.logo {
+  max-height: ${70/scaleFactor}px;
+  height: auto;
+  width: auto;
+  display: block;
+  margin-left: 20px; 
+}
+
+.right-info {
+  font-size: ${12 / scaleFactor}px;
+  text-align: left;
+  line-height: 1.8;
+  flex-shrink: 0;
+}
+    
   </style>
 </head>
 <body>
@@ -228,17 +246,19 @@ class Global {
     </div>
 
     <!-- Title + Driver Info -->
-    <div class="title-driver-wrapper">
-      <div class="fancy-title">
-        <span class="big">ગુરૂછાયા</span>
-        <span class="small">ટ્રાવેલ્સ</span>
-      </div>
-      <div class="right-info">
-        ડ્રાઈવર : ________________________________<br>
-        કન્ડક્ટર : ________________________________
-      </div>
-    </div>
-
+  <div class="title-driver-wrapper">
+  <img
+    src="data:image/png;base64,$base64Image"
+    class="logo"
+    alt="Logo"
+  />
+  <div class="right-info">
+    ડ્રાઈવર : ________________________________<br>
+    કન્ડક્ટર : ________________________________
+  </div>
+</div>
+   
+   
     <!-- Info Line -->
     <div class="info-row">
       <span>તા. $date</span>
@@ -271,7 +291,7 @@ class Global {
     return htmlContent;
   }
 
-  static double getFontSize(double initialSize,double scale) {
+  static double getFontSize(double initialSize, double scale) {
     if (scale <= 1.0) {
       return initialSize;
     } else if (scale <= 1.15) {

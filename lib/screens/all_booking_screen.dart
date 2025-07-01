@@ -34,7 +34,7 @@ class _AllBookingScreenState extends State<AllBookingScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       var bookingStore = getBookingStore(context);
       bookingStore.changeLoadingStatus(true);
-      htmlContent = Global.getHtmlContent(
+      htmlContent = await Global.getHtmlContent(
         date: widget.date,
         busNumber: widget.busNumber,
         scaleFactor: MediaQuery.of(context).textScaleFactor,

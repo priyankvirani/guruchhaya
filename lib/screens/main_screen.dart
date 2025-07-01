@@ -365,6 +365,15 @@ class _MainScreenState extends State<MainScreen> {
                                 initialDate: selectedDate,
                                 firstDate: DateTime.now().subtract(Duration(days: 14)),
                                 lastDate: DateTime.now().add(Duration(days: 30)),
+                                builder: (context, child) {
+                                  final mediaQuery = MediaQuery.of(context);
+                                  return MediaQuery(
+                                    data: mediaQuery.copyWith(
+                                      textScaleFactor: 1.0,
+                                    ),
+                                    child: child ?? const SizedBox(),
+                                  );
+                                },
                               ).then((pickedDate) {
                                 if (pickedDate != null &&
                                     pickedDate != selectedDate) {

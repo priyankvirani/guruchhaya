@@ -158,4 +158,22 @@ class LanguageHi extends Languages {
   @override
   String get changeBusNumberForThisSeat => "इस सीट के लिए बस नंबर बदलें?";
 
+  @override
+  String get details => "विवरण";
+
+  @override
+  String get driver => "ड्राइवर";
+
+  @override
+  String get conductor => "कंडक्टर";
+
+  @override
+  String get time => "समय";
+
+  @override
+  String get suratTo => "सूरत से";
+
+  @override
+  String get saved => "सेव किया गया";
+
 }

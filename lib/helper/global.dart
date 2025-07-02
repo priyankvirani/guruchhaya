@@ -80,10 +80,15 @@ class Global {
     'Total'
   ];
 
-  static Future<String> getHtmlContent(
-      {required String date,
-      required String busNumber,
-      required double scaleFactor}) async {
+  static Future<String> getHtmlContent({
+    required String date,
+    required String busNumber,
+    required double scaleFactor,
+    required String driver,
+    required String conductor,
+    required String time,
+    required String suratTo,
+  }) async {
     final ByteData imageBytes = await rootBundle.load(Images.guruchhaya);
     final Uint8List bytes = imageBytes.buffer.asUint8List();
     final String base64Image = base64Encode(bytes);
@@ -219,7 +224,7 @@ class Global {
 }
 
 .logo {
-  max-height: ${70/scaleFactor}px;
+  max-height: ${70 / scaleFactor}px;
   height: auto;
   width: auto;
   display: block;
@@ -253,8 +258,10 @@ class Global {
     alt="Logo"
   />
   <div class="right-info">
-    ડ્રાઈવર : ________________________________<br>
-    કન્ડક્ટર : ________________________________
+    ડ્રાઈવર : ${driver.isNotEmpty ? driver : "________________________________"}<br>
+    <span style="display: inline-block; margin-top: 10px;">
+    કન્ડક્ટર : ${conductor.isNotEmpty ? conductor : "________________________________"}
+  </span>
   </div>
 </div>
    
@@ -262,9 +269,9 @@ class Global {
     <!-- Info Line -->
     <div class="info-row">
       <span>તા. $date</span>
-      <span>સમય : ___________________</span>
+      <span>સમય : ${time.isNotEmpty ? time :"___________________"}</span>
       <span>ગાડી નં. $busNumber</span>
-      <span>સુરત થી ______________________________________________________</span>
+      <span>સુરત થી  ${suratTo.isNotEmpty ? suratTo : "______________________________________________________"}</span>
     </div>
 
     <!-- Table -->
@@ -322,13 +329,8 @@ class Global {
       return seatA.compareTo(seatB);
     });
 
-    double totalAmount = bookingStore.bookingList.fold(0.0, (sum, booking) {
-      return sum + (int.parse(booking.cash ?? "0"));
-    });
-    double totalPendingAmount =
-        bookingStore.bookingList.fold(0.0, (sum, booking) {
-      return sum + (int.parse(booking.pending ?? "0"));
-    });
+    double totalAmount = 0;
+    double totalPendingAmount = 0;
 
     String rows = '';
 
@@ -403,6 +405,9 @@ class Global {
           mobileNumber = '$mobileNumber / ${booking.secondaryMobileNumber}';
         }
       }
+
+      totalAmount += double.parse(booking.cash ?? "0");
+      totalPendingAmount += double.parse(booking.pending ?? "0");
 
       if (seat == "Total") {
         rows += '''

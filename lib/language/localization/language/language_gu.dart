@@ -158,6 +158,24 @@ class LanguageGu extends Languages {
   @override
   String get changeBusNumberForThisSeat => "આ સીટ માટે બસ નંબર બદલવો છે?";
 
+  @override
+  String get details => "વિગતો";
+
+  @override
+  String get driver => "ડ્રાઈવર";
+
+  @override
+  String get conductor => "કંડક્ટર";
+
+  @override
+  String get time => "સમય";
+
+  @override
+  String get suratTo => "સુરત થી";
+
+  @override
+  String get saved => "સેવ કરેલ છે";
+
 
 
 }

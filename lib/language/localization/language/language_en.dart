@@ -158,6 +158,22 @@ class LanguageEn extends Languages {
   @override
   String get changeBusNumberForThisSeat => "Change Bus number for this seat?";
 
+  @override
+  String get details => "Details";
 
+  @override
+  String get driver => "Driver";
+
+  @override
+  String get conductor => "Conductor";
+
+  @override
+  String get time => "Time";
+
+  @override
+  String get suratTo => "Surat to";
+
+  @override
+  String get saved => "Saved";
 
 }

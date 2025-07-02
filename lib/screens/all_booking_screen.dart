@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
+import 'package:guruchaya/helper/app_dialog.dart';
 import 'package:guruchaya/helper/colors.dart';
 import 'package:guruchaya/helper/dimens.dart';
 import 'package:guruchaya/helper/global.dart';
@@ -12,6 +13,7 @@ import 'package:guruchaya/widgets/appbar.dart';
 import 'package:guruchaya/widgets/loading.dart';
 import 'package:provider/provider.dart';
 
+import '../helper/shared_preference.dart';
 import '../helper/string.dart';
 
 class AllBookingScreen extends StatefulWidget {
@@ -26,22 +28,6 @@ class AllBookingScreen extends StatefulWidget {
 
 class _AllBookingScreenState extends State<AllBookingScreen> {
   String htmlContent = '';
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      var bookingStore = getBookingStore(context);
-      bookingStore.changeLoadingStatus(true);
-      htmlContent = await Global.getHtmlContent(
-        date: widget.date,
-        busNumber: widget.busNumber,
-        scaleFactor: MediaQuery.of(context).textScaleFactor,
-      );
-      bookingStore.changeLoadingStatus(false);
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,11 +67,16 @@ class _AllBookingScreenState extends State<AllBookingScreen> {
                         title: Languages.of(context)!.allBooking,
                         actions: [
                           InkWell(
-                            onTap: () {
+                            onTap: () async {
+                              Map<String, dynamic>? data = await Preferences.getDriverDetails(widget.busNumber);
                               NavigationService.navigateTo(Routes.pdfView,
                                   arguments: {
                                     'busNumber': widget.busNumber,
-                                    'date': widget.date
+                                    'date': widget.date,
+                                    'driver': data?['driverName'] ?? '',
+                                    'conductor': data?['conductorName'] ?? '',
+                                    'time': data?['time'] ?? '',
+                                    'to': data?['toVillageName'] ?? '',
                                   });
                             },
                             child: Image.asset(
@@ -97,7 +88,19 @@ class _AllBookingScreenState extends State<AllBookingScreen> {
                             width: Dimens.dimen_20,
                           ),
                           InkWell(
-                            onTap: () {
+                            onTap: () async {
+                              Map<String, dynamic>? data = await Preferences.getDriverDetails(widget.busNumber);
+                              bookingStore.changeLoadingStatus(true);
+                              htmlContent = await Global.getHtmlContent(
+                                date: widget.date,
+                                busNumber: widget.busNumber,
+                                scaleFactor: MediaQuery.of(context).textScaleFactor,
+                                driver: data?['driverName'] ?? '',
+                                conductor: data?['conductorName'] ?? '',
+                                time: data?['time'] ?? '',
+                                suratTo: data?['toVillageName'] ?? '',
+                              );
+                              bookingStore.changeLoadingStatus(false);
                               Global.downloadPDF(
                                   htmlContent: htmlContent,
                                   busNumber: widget.busNumber,
@@ -113,7 +116,19 @@ class _AllBookingScreenState extends State<AllBookingScreen> {
                             width: Dimens.dimen_20,
                           ),
                           InkWell(
-                            onTap: () {
+                            onTap: () async {
+                              Map<String, dynamic>? data = await Preferences.getDriverDetails(widget.busNumber);
+                              bookingStore.changeLoadingStatus(true);
+                              htmlContent = await Global.getHtmlContent(
+                                date: widget.date,
+                                busNumber: widget.busNumber,
+                                scaleFactor: MediaQuery.of(context).textScaleFactor,
+                                driver: data?['driverName'] ?? '',
+                                conductor: data?['conductorName'] ?? '',
+                                time: data?['time'] ?? '',
+                                suratTo: data?['toVillageName'] ?? '',
+                              );
+                              bookingStore.changeLoadingStatus(false);
                               Global.sharePDF(
                                   htmlContent: htmlContent,
                                   busNumber: widget.busNumber,
@@ -156,7 +171,7 @@ class _AllBookingScreenState extends State<AllBookingScreen> {
     );
   }
 
-  List<DataRow> generateListSeatWise(){
+  List<DataRow> generateListSeatWise() {
     var bookingStore = getBookingStore(NavigationService.context);
     List<Booking> lists = bookingStore.bookingList;
     lists.sort((a, b) {
@@ -189,7 +204,7 @@ class _AllBookingScreenState extends State<AllBookingScreen> {
         List splitSeatNo = bookingStore.getSplitSeatNo(seat);
         if (splitSeatNo.isEmpty) {
           booking = lists.firstWhere(
-                (b) {
+            (b) {
               return b.seatNumber == seat;
             },
             orElse: () => Booking(),
@@ -199,7 +214,7 @@ class _AllBookingScreenState extends State<AllBookingScreen> {
               bookingStore.getListOfBookingInfo(splitSeatNo) ?? [];
           if (list.isEmpty) {
             booking = lists.firstWhere(
-                  (b) {
+              (b) {
                 return b.seatNumber == seat;
               },
               orElse: () => Booking(),
@@ -213,16 +228,16 @@ class _AllBookingScreenState extends State<AllBookingScreen> {
               cash: '${list[0].cash}\n${list[1].cash}',
               pending: '${list[0].pending}\n${list[1].pending}',
               mobileNumber:
-              '${list[0].mobileNumber ?? "-"}\n${list[1].mobileNumber ?? "-"}',
+                  '${list[0].mobileNumber ?? "-"}\n${list[1].mobileNumber ?? "-"}',
               secondaryMobileNumber:
-              '${list[0].secondaryMobileNumber ?? "-"}\n${list[1].secondaryMobileNumber ?? "-"}',
+                  '${list[0].secondaryMobileNumber ?? "-"}\n${list[1].secondaryMobileNumber ?? "-"}',
               place:
-              '${list[0].place!.split("(").first}\n${list[1].place!.split("(").first}',
+                  '${list[0].place!.split("(").first}\n${list[1].place!.split("(").first}',
               villageName: '${list[0].villageName}\n${list[1].villageName}',
             );
           } else {
             booking = lists.firstWhere(
-                  (b) {
+              (b) {
                 return b.seatNumber == seat;
               },
               orElse: () => Booking(),
@@ -231,7 +246,7 @@ class _AllBookingScreenState extends State<AllBookingScreen> {
         }
       } else {
         booking = lists.firstWhere(
-              (b) {
+          (b) {
             return b.seatNumber == seat;
           },
           orElse: () => Booking(),
@@ -242,47 +257,48 @@ class _AllBookingScreenState extends State<AllBookingScreen> {
 
       rows.add(DataRow(cells: [
         buildDataCell(booking.fullName ?? ''),
-        buildDataCell(booking.place != null ? booking.place!.split("(").first  : ""),
+        buildDataCell(
+            booking.place != null ? booking.place!.split("(").first : ""),
         buildDataCell(seat == 'K' ? '' : gujaratiSeat),
-        mobileNumber.isEmpty ? DataCell(SizedBox()) : DataCell(
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              InkWell(
-                onTap: () async {
-                  await FlutterPhoneDirectCaller.callNumber(
-                      mobileNumber.split("\n").first ?? '');
-                },
-                child: Image.asset(
-                  Images.phone,
-                  height: Dimens.dimen_25,
-                  width: Dimens.dimen_25,
+        mobileNumber.isEmpty
+            ? DataCell(SizedBox())
+            : DataCell(
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    InkWell(
+                      onTap: () async {
+                        await FlutterPhoneDirectCaller.callNumber(
+                            mobileNumber.split("\n").first ?? '');
+                      },
+                      child: Image.asset(
+                        Images.phone,
+                        height: Dimens.dimen_25,
+                        width: Dimens.dimen_25,
+                      ),
+                    ),
+                    if (mobileNumber.contains("\n"))
+                      Padding(
+                        padding: EdgeInsets.only(left: Dimens.padding_10),
+                        child: InkWell(
+                          onTap: () async {
+                            await FlutterPhoneDirectCaller.callNumber(
+                                mobileNumber.split("\n").last ?? '');
+                          },
+                          child: Image.asset(
+                            Images.phone,
+                            height: Dimens.dimen_25,
+                            width: Dimens.dimen_25,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
-              if(mobileNumber.contains("\n"))
-                Padding(
-                  padding: EdgeInsets.only(left: Dimens.padding_10),
-                  child: InkWell(
-                    onTap: () async {
-                      await FlutterPhoneDirectCaller.callNumber(
-                          mobileNumber.split("\n").last ?? '');
-                    },
-                    child: Image.asset(
-                      Images.phone,
-                      height: Dimens.dimen_25,
-                      width: Dimens.dimen_25,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
       ]));
-
     }
 
     return rows;
-
   }
 
   buildTableTitle(String title) {
@@ -308,5 +324,4 @@ class _AllBookingScreenState extends State<AllBookingScreen> {
       ),
     ));
   }
-
 }

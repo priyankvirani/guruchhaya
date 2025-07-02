@@ -59,4 +59,10 @@ abstract class Languages {
   String get selectBusNumber;
   String get areYouSureYouWantToChangeThisBusNumberForAllBooking;
   String get changeBusNumberForThisSeat;
+  String get details;
+  String get driver;
+  String get conductor;
+  String get time;
+  String get suratTo;
+  String get saved;
 }

@@ -8,7 +8,6 @@ import 'package:page_transition/page_transition.dart';
 import '../screens/login_screen.dart';
 import '../screens/splash.dart';
 
-
 class Routes {
   static const String splash = "/splash";
   static const String login = "/login";
@@ -21,7 +20,7 @@ class Routes {
 class RouteGenerator {
   static Route<dynamic>? generateRoute(RouteSettings settings) {
     Map<String, dynamic> args = {};
-    if(settings.arguments != null){
+    if (settings.arguments != null) {
       args = settings.arguments as Map<String, dynamic>;
     }
 
@@ -33,12 +32,22 @@ class RouteGenerator {
       case Routes.main:
         return fadePageTransition(MainScreen());
       case Routes.allBooking:
-        return fadePageTransition(AllBookingScreen(busNumber : args['busNumber'], date: args['date'],));
+        return fadePageTransition(AllBookingScreen(
+          busNumber: args['busNumber'],
+          date: args['date'],
+        ));
       case Routes.pdfView:
-        return fadePageTransition(PdfScreen(busNumber : args['busNumber'], date: args['date'],));
+        return fadePageTransition(PdfScreen(
+          busNumber: args['busNumber'],
+          date: args['date'],
+          driver: args['driver'],
+          conductor: args['conductor'],
+          time: args['time'],
+          to: args['to'],
+        ));
       case Routes.setting:
         return fadePageTransition(SettingScreen());
-        default:
+      default:
         return _errorRoutes();
     }
   }

@@ -583,6 +583,24 @@ class _MainScreenState extends State<MainScreen> {
                             ),
                           ),
                         ),
+                      Padding(
+                        padding: EdgeInsets.only(bottom: Dimens.padding_10),
+                        child: InkWell(
+                          onTap: () {
+                            AppDialog.driverDetailsDialog(context,bookingStore.selectedBusNumber);
+                          },
+                          child: Text(
+                            "${Languages.of(context)!.driver} ${Languages.of(context)!.details}",
+                            style: TextStyle(
+                                color: skyBlue,
+                                fontSize: Dimens.fontSize_14,
+                                fontFamily: Fonts.semiBold,
+                                fontWeight: FontWeight.w700,
+                                decoration: TextDecoration.underline,
+                                decorationColor: skyBlue),
+                          ),
+                        ),
+                      ),
                       AppButton(
                         label: Languages.of(context)!.bookTicket,
                         onPressed: () {

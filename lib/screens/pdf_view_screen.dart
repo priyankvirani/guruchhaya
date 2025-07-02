@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_html_to_pdf/flutter_html_to_pdf.dart';
+import 'package:guruchaya/helper/app_dialog.dart';
 import 'package:guruchaya/helper/dimens.dart';
 import 'package:guruchaya/helper/global.dart';
 import 'package:guruchaya/helper/string.dart';
@@ -29,8 +30,13 @@ import 'package:pdf/widgets.dart' as pw;
 class PdfScreen extends StatefulWidget {
   String busNumber;
   String date;
+  String driver;
+  String conductor;
+  String time;
+  String to;
 
-  PdfScreen({required this.busNumber, required this.date});
+  PdfScreen({required this.busNumber, required this.date,
+    required this.driver, required this.conductor, required this.time, required this.to});
 
   @override
   State<PdfScreen> createState() => _PdfScreenState();
@@ -54,6 +60,10 @@ class _PdfScreenState extends State<PdfScreen> {
         date: widget.date,
         busNumber: widget.busNumber,
         scaleFactor: MediaQuery.of(context).textScaleFactor,
+        driver: widget.driver,
+        conductor: widget.conductor,
+        time: widget.time,
+        suratTo: widget.to,
       );
 
       setState(() {});

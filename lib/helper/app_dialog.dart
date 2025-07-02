@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:guruchaya/model/booking.dart';
+import 'package:guruchaya/screens/dialog/driver_details_dialog.dart';
 import 'package:guruchaya/screens/dialog/place_dialog.dart';
 import 'package:guruchaya/screens/dialog/village_dialog.dart';
 import '../language/language_data.dart';
@@ -37,6 +38,15 @@ class AppDialog {
       context: context,
       builder: (BuildContext context) {
         return PassengerDetailsDialog(onSubmit,booking,onCancel,isSplitOption,seatNo,selectedSplitSeatNo);
+      },
+    );
+  }
+
+  static driverDetailsDialog(BuildContext context,String busNumber) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return DriverDetailsDialog(busNumber);
       },
     );
   }

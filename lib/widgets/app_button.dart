@@ -24,7 +24,7 @@ class AppButton extends StatelessWidget {
    AppButton(
       {required this.label,
       required this.onPressed,
-      this.width,
+      this.width = double.infinity,
       this.height = 55,
       this.textSize = 15,
       this.radius = 14,

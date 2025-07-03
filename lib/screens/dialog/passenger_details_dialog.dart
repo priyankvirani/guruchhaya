@@ -287,25 +287,11 @@ class _PassengerDetailsDialogState extends State<PassengerDetailsDialog> {
                               ),
                             ),
                           AppTextField(
-                            hintText: Languages.of(context)!.fullName,
-                            controller: fullNameController,
-                            validator: (value) {
-                              if (_isClearing) return null;
-                              if (value == null || value.isEmpty) {
-                                return Languages.of(context)!.fullNameRequired;
-                              }
-                              return null;
-                            },
-                            titleText: '',
-                          ),
-                          SizedBox(
-                            height: Dimens.dimen_16,
-                          ),
-                          AppTextField(
-                            hintText: Languages.of(context)!.pickPlace,
+                            hintText: Languages.of(context)!.village,
+                            controller: villageController,
                             onTap: () {
-                              AppDialog.placeDialog(context, onSubmit: (name) {
-                                placeController.text = name;
+                              AppDialog.villageDialog(context, onSubmit: (name) {
+                                villageController.text = name;
                               });
                             },
                             suffix: Padding(
@@ -316,11 +302,25 @@ class _PassengerDetailsDialogState extends State<PassengerDetailsDialog> {
                               ),
                             ),
                             isReadOnly: true,
-                            controller: placeController,
                             validator: (value) {
                               if (_isClearing) return null;
                               if (value == null || value.isEmpty) {
-                                return Languages.of(context)!.placeRequired;
+                                return Languages.of(context)!.villageRequired;
+                              }
+                              return null;
+                            },
+                            titleText: '',
+                          ),
+                          SizedBox(
+                            height: Dimens.dimen_16,
+                          ),
+                          AppTextField(
+                            hintText: Languages.of(context)!.fullName,
+                            controller: fullNameController,
+                            validator: (value) {
+                              if (_isClearing) return null;
+                              if (value == null || value.isEmpty) {
+                                return Languages.of(context)!.fullNameRequired;
                               }
                               return null;
                             },
@@ -356,11 +356,10 @@ class _PassengerDetailsDialogState extends State<PassengerDetailsDialog> {
                             height: Dimens.dimen_16,
                           ),
                           AppTextField(
-                            hintText: Languages.of(context)!.village,
-                            controller: villageController,
+                            hintText: Languages.of(context)!.pickPlace,
                             onTap: () {
-                              AppDialog.villageDialog(context, onSubmit: (name) {
-                                villageController.text = name;
+                              AppDialog.placeDialog(context, onSubmit: (name) {
+                                placeController.text = name;
                               });
                             },
                             suffix: Padding(
@@ -371,10 +370,11 @@ class _PassengerDetailsDialogState extends State<PassengerDetailsDialog> {
                               ),
                             ),
                             isReadOnly: true,
+                            controller: placeController,
                             validator: (value) {
                               if (_isClearing) return null;
                               if (value == null || value.isEmpty) {
-                                return Languages.of(context)!.villageRequired;
+                                return Languages.of(context)!.placeRequired;
                               }
                               return null;
                             },
@@ -395,13 +395,6 @@ class _PassengerDetailsDialogState extends State<PassengerDetailsDialog> {
                                     FilteringTextInputFormatter.allow(
                                         RegExp(r'^\d{0,10}')),
                                   ],
-                                  validator: (value) {
-                                    if (_isClearing) return null;
-                                    if (value == null || value.isEmpty) {
-                                      return Languages.of(context)!.amountRequired;
-                                    }
-                                    return null;
-                                  },
                                   titleText: '',
                                 ),
                               ),
@@ -418,13 +411,6 @@ class _PassengerDetailsDialogState extends State<PassengerDetailsDialog> {
                                     FilteringTextInputFormatter.allow(
                                         RegExp(r'^\d{0,10}')),
                                   ],
-                                  validator: (value) {
-                                    if (_isClearing) return null;
-                                    if (value == null || value.isEmpty) {
-                                      return "${Languages.of(context)!.pending} ${Languages.of(context)!.amountRequired}";
-                                    }
-                                    return null;
-                                  },
                                   titleText: '',
                                 ),
                               ),
@@ -479,8 +465,8 @@ class _PassengerDetailsDialogState extends State<PassengerDetailsDialog> {
                                         placeController.text,
                                         mobileController.text,
                                         villageController.text,
-                                        cashAmountController.text,
-                                        pendingAmountController.text,
+                                        cashAmountController.text.isEmpty ? "0" : cashAmountController.text,
+                                        pendingAmountController.text.isEmpty ? "0" : pendingAmountController.text,
                                         secondaryMobileController.text,
                                         isSplit,
                                         selectedSeat,

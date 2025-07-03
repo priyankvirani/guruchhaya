@@ -106,9 +106,9 @@ class AppTextField extends StatelessWidget {
                   ),
               hintText: hintText,
               hintStyle: TextStyle(
-                  fontSize: Dimens.fontSize_12,
-                  fontFamily: Fonts.regular,
-                  color: textColor.withOpacity(0.4)),
+                  fontSize: Dimens.fontSize_13,
+                  fontFamily: Fonts.semiBold,
+                  color: redColor),
               labelText: labelText,
               labelStyle: Theme.of(context).textTheme.headlineSmall!.copyWith(
                     fontFamily: Fonts.regular,

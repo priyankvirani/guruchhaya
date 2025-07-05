@@ -39,11 +39,12 @@ class Global {
     '32',
     '33-34',
     '35-36',
-    'K',
-    'K',
-    'K',
-    'K',
-    'K',
+    'K1',
+    'K2',
+    'K3',
+    'K4',
+    'K5',
+    'K6',
     'Total'
   ];
 
@@ -72,11 +73,12 @@ class Global {
     '૩૨',
     '૩૩-૩૪',
     '૩૫-૩૬',
-    'K',
-    'K',
-    'K',
-    'K',
-    'K',
+    'K1',
+    'K2',
+    'K3',
+    'K4',
+    'K5',
+    'K6',
     'Total'
   ];
 
@@ -313,21 +315,21 @@ class Global {
   static String generateTableRows() {
     var bookingStore = getBookingStore(NavigationService.context);
     List<Booking> lists = bookingStore.bookingList;
-    lists.sort((a, b) {
-      int seatA;
-      int seatB;
-      if (a.seatNumber!.contains('-')) {
-        seatA = int.parse(a.seatNumber!.split("-").first);
-      } else {
-        seatA = int.parse(a.seatNumber!);
-      }
-      if (b.seatNumber!.contains('-')) {
-        seatB = int.parse(b.seatNumber!.split("-").first);
-      } else {
-        seatB = int.parse(b.seatNumber!);
-      }
-      return seatA.compareTo(seatB);
-    });
+    // lists.sort((a, b) {
+    //   int seatA;
+    //   int seatB;
+    //   if (a.seatNumber!.contains('-')) {
+    //     seatA = int.parse(a.seatNumber!.split("-").first);
+    //   } else {
+    //     seatA = int.parse(a.seatNumber!);
+    //   }
+    //   if (b.seatNumber!.contains('-')) {
+    //     seatB = int.parse(b.seatNumber!.split("-").first);
+    //   } else {
+    //     seatB = int.parse(b.seatNumber!);
+    //   }
+    //   return seatA.compareTo(seatB);
+    // });
 
     double totalAmount = 0;
     double totalPendingAmount = 0;
@@ -391,8 +393,8 @@ class Global {
         );
       }
 
-      final no = seat == 'K'
-          ? 'K'
+      final no = seat.contains('K')
+          ? '૧'
           : seat.contains('-')
               ? '૨'
               : '૧';
@@ -430,7 +432,7 @@ class Global {
       <td>${booking.place == null ? "" : booking.place!.split("(").first}</td>
       <td>${booking.cash == null || booking.cash!.isEmpty || booking.cash == "0" ? "" : booking.cash}</td>
       <td>${booking.pending == null || booking.pending!.isEmpty || booking.pending == "0" ? "" : booking.pending}</td>
-      <td>${seat == 'K' ? '' : gujaratiSeat}</td>
+      <td>$gujaratiSeat</td>
       <td>$mobileNumber</td>
       <td>${booking.villageName ?? ''}</td>
     </tr>

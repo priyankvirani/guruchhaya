@@ -44,46 +44,47 @@ class _SettingScreenState extends State<SettingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body:
-          Consumer<BookingController>(builder: (context, bookStore, snapshot) {
-        return Stack(
-          children: [
-            SafeArea(
-              child: MediaQuery(
-                data: MediaQueryData(
-                  textScaleFactor: 1.0,
-                ),
-                child: Padding(
-                  padding: EdgeInsets.all(Dimens.padding_20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only( bottom:Dimens.padding_20),
-                        child: BackAppBar(
-                          title: Languages.of(context)!.setting,
+      body: Consumer<BookingController>(
+        builder: (context, bookStore, snapshot) {
+          return Stack(
+            children: [
+              SafeArea(
+                child: MediaQuery(
+                  data: MediaQueryData(
+                    textScaleFactor: 1.0,
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.all(Dimens.padding_20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(bottom: Dimens.padding_20),
+                          child: BackAppBar(
+                            title: Languages.of(context)!.setting,
+                          ),
                         ),
-                      ),
-                      settingTile(
-                        title: Languages.of(context)!.language,
-                        image: Images.language,
-                        isLanguage: true,
-                        onPressed: () {
-                          AppDialog.languageDialog(context, onTap: (val) {
-                            changeLanguage(context, val.languageCode);
-                            languageLoad();
-                          });
-                        },
-                      ),
-                    ],
+                        settingTile(
+                          title: Languages.of(context)!.language,
+                          image: Images.language,
+                          isLanguage: true,
+                          onPressed: () {
+                            AppDialog.languageDialog(context, onTap: (val) {
+                              changeLanguage(context, val.languageCode);
+                              languageLoad();
+                            });
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            LoadingWithBackground(bookStore.loading)
-          ],
-        );
-      }),
+              LoadingWithBackground(bookStore.loading)
+            ],
+          );
+        },
+      ),
     );
   }
 

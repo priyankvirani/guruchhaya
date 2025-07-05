@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
-import 'package:guruchaya/helper/app_dialog.dart';
 import 'package:guruchaya/helper/colors.dart';
 import 'package:guruchaya/helper/dimens.dart';
 import 'package:guruchaya/helper/global.dart';
@@ -35,22 +34,6 @@ class _AllBookingScreenState extends State<AllBookingScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Consumer<BookingController>(
           builder: (context, bookingStore, snapshot) {
-        List<Booking> lists = bookingStore.bookingList;
-        lists.sort((a, b) {
-          int seatA;
-          int seatB;
-          if (a.seatNumber!.contains('-')) {
-            seatA = int.parse(a.seatNumber!.split("-").first);
-          } else {
-            seatA = int.parse(a.seatNumber!);
-          }
-          if (b.seatNumber!.contains('-')) {
-            seatB = int.parse(b.seatNumber!.split("-").first);
-          } else {
-            seatB = int.parse(b.seatNumber!);
-          }
-          return seatA.compareTo(seatB);
-        });
         return Stack(
           children: [
             SafeArea(
@@ -174,21 +157,6 @@ class _AllBookingScreenState extends State<AllBookingScreen> {
   List<DataRow> generateListSeatWise() {
     var bookingStore = getBookingStore(NavigationService.context);
     List<Booking> lists = bookingStore.bookingList;
-    lists.sort((a, b) {
-      int seatA;
-      int seatB;
-      if (a.seatNumber!.contains('-')) {
-        seatA = int.parse(a.seatNumber!.split("-").first);
-      } else {
-        seatA = int.parse(a.seatNumber!);
-      }
-      if (b.seatNumber!.contains('-')) {
-        seatB = int.parse(b.seatNumber!.split("-").first);
-      } else {
-        seatB = int.parse(b.seatNumber!);
-      }
-      return seatA.compareTo(seatB);
-    });
 
     List<DataRow> rows = [];
 

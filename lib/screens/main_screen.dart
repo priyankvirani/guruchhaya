@@ -43,9 +43,9 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  Widget singleSeat(int seatNo) {
+  Widget singleSeat(String seatNo) {
     var bookingStore = getBookingStore(context);
-    final isSelected = selected.contains('$seatNo');
+    final isSelected = selected.contains(seatNo);
     double totalSize = Responsive.isDesktop(context) ? (MediaQuery.of(context).size.width/3.5) : MediaQuery.of(context).size.width - Dimens.padding_40;
     double boxSize = totalSize / 7;
     bool isAlreadyBook = bookingStore.checkAlreadyBook(seatNo.toString());
@@ -109,7 +109,7 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Widget doubleSeat(String id, List<int> seats) {
+  Widget doubleSeat(String id, List<String> seats) {
     var bookingStore = getBookingStore(context);
     double totalSize = Responsive.isDesktop(context) ? (MediaQuery.of(context).size.width/3.5) : MediaQuery.of(context).size.width - Dimens.padding_40;
     double boxSize = totalSize / 7;
@@ -294,11 +294,11 @@ class _MainScreenState extends State<MainScreen> {
         // Single seats on the left
         Row(
           children: [
-            singleSeat(single1),
+            singleSeat(single1.toString()),
             SizedBox(
               width: Dimens.width_10,
             ),
-            singleSeat(single2),
+            singleSeat(single2.toString()),
           ],
         ),
         // Spacer (empty space in middle)
@@ -307,12 +307,12 @@ class _MainScreenState extends State<MainScreen> {
         Row(
           children: [
             doubleSeat(
-                '$doubleLower1-$doubleLower2', [doubleLower1, doubleLower2]),
+                '$doubleLower1-$doubleLower2', [doubleLower1.toString(), doubleLower2.toString()]),
             SizedBox(
               width: Dimens.width_10,
             ),
             doubleSeat(
-                '$doubleUpper1-$doubleUpper2', [doubleUpper1, doubleUpper2]),
+                '$doubleUpper1-$doubleUpper2', [doubleUpper1.toString(), doubleUpper2.toString()]),
           ],
         ),
       ],
@@ -487,21 +487,36 @@ class _MainScreenState extends State<MainScreen> {
                               padding: EdgeInsets.zero,
                               itemBuilder: (context, index) {
                                 int pos = index * 6;
-                                return seatRow(
-                                  single1: pos + 1,
-                                  single2: pos + 2,
-                                  doubleLower1: pos + 3,
-                                  doubleLower2: pos + 4,
-                                  doubleUpper1: pos + 5,
-                                  doubleUpper2: pos + 6,
-                                );
+                                if(index == 6){
+                                  return Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      singleSeat("K1"),
+                                      singleSeat('K2'),
+                                      singleSeat("K3"),
+                                      singleSeat('K4'),
+                                      singleSeat('K5'),
+                                      singleSeat('K6'),
+                                    ],
+                                  );
+                                }else{
+                                  return seatRow(
+                                    single1: pos + 1,
+                                    single2: pos + 2,
+                                    doubleLower1: pos + 3,
+                                    doubleLower2: pos + 4,
+                                    doubleUpper1: pos + 5,
+                                    doubleUpper2: pos + 6,
+                                  );
+                                }
+
                               },
                               separatorBuilder: (context, index) {
                                 return SizedBox(
                                   height: Dimens.height_10,
                                 );
                               },
-                              itemCount: 6,
+                              itemCount: 7,
                             ),
                           ),
                         ),
@@ -510,11 +525,11 @@ class _MainScreenState extends State<MainScreen> {
                         mainAxisAlignment: Responsive.isDesktop(context) ? MainAxisAlignment.center : MainAxisAlignment.start,
                         children: [
                           Container(
-                            height: Dimens.height_20,
-                            width: Dimens.height_20,
+                            height: Dimens.height_15,
+                            width: Dimens.height_15,
                             decoration: BoxDecoration(
                               color: primaryColor,
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: BorderRadius.circular(3),
                             ),
                           ),
                           SizedBox(
@@ -524,18 +539,18 @@ class _MainScreenState extends State<MainScreen> {
                             Languages.of(context)!.booked,
                             style: TextStyle(
                               color: Theme.of(context).textTheme.labelSmall!.color,
-                              fontSize: Dimens.fontSize_14,
+                              fontSize: Dimens.fontSize_12,
                             ),
                           ),
                           SizedBox(
                             width: Dimens.width_30,
                           ),
                           Container(
-                            height: Dimens.height_20,
-                            width: Dimens.height_20,
+                            height: Dimens.height_15,
+                            width: Dimens.height_15,
                             decoration: BoxDecoration(
                               color: Colors.grey[300],
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: BorderRadius.circular(3),
                             ),
                           ),
                           SizedBox(
@@ -545,62 +560,67 @@ class _MainScreenState extends State<MainScreen> {
                             Languages.of(context)!.available,
                             style: TextStyle(
                               color: Theme.of(context).textTheme.labelSmall!.color,
-                              fontSize: Dimens.fontSize_14,
+                              fontSize: Dimens.fontSize_12,
                             ),
                           ),
                         ],
                       ),
                       SizedBox(
-                        height: Dimens.height_20,
+                        height: Dimens.height_10,
                       ),
-                      if (bookingStore.bookingList.isNotEmpty)
-                        Padding(
-                          padding: EdgeInsets.only(bottom: Dimens.padding_10),
-                          child: InkWell(
-                            onTap: () {
-                              AppDialog.changeBusNumberDialog(
-                                context,
-                                onSubmit: (changeNumber) async {
-                                  await bookingStore.changeAllBookingBusNumber(
-                                    oldBusNumber: bookingStore.selectedBusNumber,
-                                    newBusNumber: changeNumber,
-                                    date: DateFormat("dd-MM-yyyy")
-                                        .format(selectedDate),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          if (bookingStore.bookingList.isNotEmpty)
+                            Padding(
+                              padding: EdgeInsets.only(bottom: Dimens.padding_10),
+                              child: InkWell(
+                                onTap: () {
+                                  AppDialog.changeBusNumberDialog(
+                                    context,
+                                    onSubmit: (changeNumber) async {
+                                      await bookingStore.changeAllBookingBusNumber(
+                                        oldBusNumber: bookingStore.selectedBusNumber,
+                                        newBusNumber: changeNumber,
+                                        date: DateFormat("dd-MM-yyyy")
+                                            .format(selectedDate),
+                                      );
+                                      getAllBookedSeat();
+                                    },
+                                    currentBusNumber: bookingStore.selectedBusNumber,
                                   );
-                                  getAllBookedSeat();
                                 },
-                                currentBusNumber: bookingStore.selectedBusNumber,
-                              );
-                            },
-                            child: Text(
-                              Languages.of(context)!.changeBusNumberForAllBooking,
-                              style: TextStyle(
-                                  color: skyBlue,
-                                  fontSize: Dimens.fontSize_14,
-                                  fontFamily: Fonts.semiBold,
-                                  fontWeight: FontWeight.w700,
-                                  decoration: TextDecoration.underline,
-                                  decorationColor: skyBlue),
+                                child: Text(
+                                  Languages.of(context)!.changeBusNumberForAllBooking,
+                                  style: TextStyle(
+                                      color: skyBlue,
+                                      fontSize: Dimens.fontSize_14,
+                                      fontFamily: Fonts.semiBold,
+                                      fontWeight: FontWeight.w700,
+                                      decoration: TextDecoration.underline,
+                                      decorationColor: skyBlue),
+                                ),
+                              ),
+                            ),
+                          Padding(
+                            padding: EdgeInsets.only(bottom: Dimens.padding_10),
+                            child: InkWell(
+                              onTap: () {
+                                AppDialog.driverDetailsDialog(context,bookingStore.selectedBusNumber);
+                              },
+                              child: Text(
+                                "${Languages.of(context)!.driver} ${Languages.of(context)!.details}",
+                                style: TextStyle(
+                                    color: skyBlue,
+                                    fontSize: Dimens.fontSize_14,
+                                    fontFamily: Fonts.semiBold,
+                                    fontWeight: FontWeight.w700,
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: skyBlue),
+                              ),
                             ),
                           ),
-                        ),
-                      Padding(
-                        padding: EdgeInsets.only(bottom: Dimens.padding_10),
-                        child: InkWell(
-                          onTap: () {
-                            AppDialog.driverDetailsDialog(context,bookingStore.selectedBusNumber);
-                          },
-                          child: Text(
-                            "${Languages.of(context)!.driver} ${Languages.of(context)!.details}",
-                            style: TextStyle(
-                                color: skyBlue,
-                                fontSize: Dimens.fontSize_14,
-                                fontFamily: Fonts.semiBold,
-                                fontWeight: FontWeight.w700,
-                                decoration: TextDecoration.underline,
-                                decorationColor: skyBlue),
-                          ),
-                        ),
+                        ],
                       ),
                       SizedBox(
                         width: Responsive.isDesktop(context) ? MediaQuery.of(context).size.width / 3 : MediaQuery.of(context).size.width,
@@ -685,7 +705,7 @@ class _MainScreenState extends State<MainScreen> {
                         ),
                       ),
                       SizedBox(
-                        height: Dimens.height_30,
+                        height: Dimens.height_10,
                       ),
                     ],
                   ),

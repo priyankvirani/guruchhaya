@@ -602,84 +602,87 @@ class _MainScreenState extends State<MainScreen> {
                           ),
                         ),
                       ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: AppButton(
-                              label: Languages.of(context)!.bookTicket,
-                              onPressed: () {
-                                if (selected.isEmpty) {
-                                  AlertSnackBar.error(
-                                      Languages.of(context)!.pleaseSelectSeat);
-                                } else {
-                                  String? seatNo;
-                                  bool isSplitOption = false;
-                                  if (selected.length == 1 &&
-                                      selected.first.contains("-")) {
-                                    isSplitOption = true;
-                                    seatNo = selected.first;
-                                  }
-                                  AppDialog.passengerDetailsDialog(
-                                    context,
-                                    isSplitOption: isSplitOption,
-                                    seatNo: seatNo,
-                                    onSubmit: (name,
-                                        place,
-                                        number,
-                                        village,
-                                        cash,
-                                        pending,
-                                        secondaryNumber,
-                                        isSplit,
-                                        splitSeatNumber) async {
-                                      for (int i = 0; i < selected.length; i++) {
-                                        String seatNumber = selected.elementAt(i);
-                                        await bookingStore.bookSeat(
-                                          busNumber: bookingStore.selectedBusNumber,
-                                          seatNumber: (isSplit ?? false)
-                                              ? splitSeatNumber!
-                                              : seatNumber,
-                                          date: DateFormat('dd-MM-yyyy')
-                                              .format(selectedDate),
-                                          fullName: name,
-                                          place: place,
-                                          cash: i == 0 ? cash : "0",
-                                          mobileNumber: number,
-                                          villageName: village,
-                                          pending: i == 0 ? pending : "0",
-                                          secondaryNumber: secondaryNumber,
-                                          isSplit: isSplit ?? false,
-                                        );
-                                        getAllBookedSeat();
-                                      }
-                                      selected.clear();
-                                    },
-                                  );
-                                }
-                              },
-                              width: Responsive.isDesktop(context) ? MediaQuery.of(context).size.width / 3 : MediaQuery.of(context).size.width,
-                            ),
-                          ),
-                          if (bookingStore.bookingList.isNotEmpty)
+                      SizedBox(
+                        width: Responsive.isDesktop(context) ? MediaQuery.of(context).size.width / 3 : MediaQuery.of(context).size.width,
+                        child: Row(
+                          children: [
                             Expanded(
                               child: AppButton(
-                                label: Languages.of(context)!.allBooking,
-                                margin: EdgeInsets.only(left: Dimens.padding_10),
-                                bgColor: Colors.transparent,
-                                isBorder: true,
-                                textColor: primaryColor,
-                                width: Responsive.isDesktop(context) ? MediaQuery.of(context).size.width / 3 : MediaQuery.of(context).size.width,
+                                label: Languages.of(context)!.bookTicket,
                                 onPressed: () {
-                                  NavigationService.navigateTo(Routes.allBooking,
-                                      arguments: {
-                                        'busNumber': bookingStore.selectedBusNumber,
-                                        'date': DateFormat('dd/MM/yyyy')
-                                            .format(selectedDate)
-                                      });
+                                  if (selected.isEmpty) {
+                                    AlertSnackBar.error(
+                                        Languages.of(context)!.pleaseSelectSeat);
+                                  } else {
+                                    String? seatNo;
+                                    bool isSplitOption = false;
+                                    if (selected.length == 1 &&
+                                        selected.first.contains("-")) {
+                                      isSplitOption = true;
+                                      seatNo = selected.first;
+                                    }
+                                    AppDialog.passengerDetailsDialog(
+                                      context,
+                                      isSplitOption: isSplitOption,
+                                      seatNo: seatNo,
+                                      onSubmit: (name,
+                                          place,
+                                          number,
+                                          village,
+                                          cash,
+                                          pending,
+                                          secondaryNumber,
+                                          isSplit,
+                                          splitSeatNumber) async {
+                                        for (int i = 0; i < selected.length; i++) {
+                                          String seatNumber = selected.elementAt(i);
+                                          await bookingStore.bookSeat(
+                                            busNumber: bookingStore.selectedBusNumber,
+                                            seatNumber: (isSplit ?? false)
+                                                ? splitSeatNumber!
+                                                : seatNumber,
+                                            date: DateFormat('dd-MM-yyyy')
+                                                .format(selectedDate),
+                                            fullName: name,
+                                            place: place,
+                                            cash: i == 0 ? cash : "0",
+                                            mobileNumber: number,
+                                            villageName: village,
+                                            pending: i == 0 ? pending : "0",
+                                            secondaryNumber: secondaryNumber,
+                                            isSplit: isSplit ?? false,
+                                          );
+                                          getAllBookedSeat();
+                                        }
+                                        selected.clear();
+                                      },
+                                    );
+                                  }
                                 },
+                                width: Responsive.isDesktop(context) ? MediaQuery.of(context).size.width / 3 : MediaQuery.of(context).size.width,
                               ),
                             ),
-                        ],
+                            if (bookingStore.bookingList.isNotEmpty)
+                              Expanded(
+                                child: AppButton(
+                                  label: Languages.of(context)!.allBooking,
+                                  margin: EdgeInsets.only(left: Dimens.padding_10),
+                                  bgColor: Colors.transparent,
+                                  isBorder: true,
+                                  textColor: primaryColor,
+                                  width: Responsive.isDesktop(context) ? MediaQuery.of(context).size.width / 3 : MediaQuery.of(context).size.width,
+                                  onPressed: () {
+                                    NavigationService.navigateTo(Routes.allBooking,
+                                        arguments: {
+                                          'busNumber': bookingStore.selectedBusNumber,
+                                          'date': DateFormat('dd/MM/yyyy')
+                                              .format(selectedDate)
+                                        });
+                                  },
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                       SizedBox(
                         height: Dimens.height_30,

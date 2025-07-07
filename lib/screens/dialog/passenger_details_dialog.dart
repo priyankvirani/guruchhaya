@@ -67,7 +67,7 @@ class _PassengerDetailsDialogState extends State<PassengerDetailsDialog> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       await getBookingStore(context).getAllPlace();
-      await getBookingStore(context).getAllVillage();
+      await getBookingStore(NavigationService.context).getAllVillage();
       setState(() {
         isSplitOption = widget.isSplitOption ?? false;
         seat = widget.seatNo ?? '';
@@ -109,8 +109,6 @@ class _PassengerDetailsDialogState extends State<PassengerDetailsDialog> {
 
   @override
   Widget build(BuildContext context) {
-    double totalSize = MediaQuery.of(context).size.width - Dimens.padding_40;
-    double boxSize = totalSize / 7;
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
       child: Dialog(
@@ -188,7 +186,7 @@ class _PassengerDetailsDialogState extends State<PassengerDetailsDialog> {
                                   if (isSplit)
                                     Container(
                                       margin: EdgeInsets.only(left: Dimens.padding_15),
-                                      width: (boxSize * 1.75),
+                                      width: Dimens.width_70,
                                       height: Dimens.height_32,
                                       decoration: BoxDecoration(
                                           color: Colors.transparent,
@@ -460,6 +458,8 @@ class _PassengerDetailsDialogState extends State<PassengerDetailsDialog> {
                                   label: Languages.of(context)!.submit,
                                   onPressed: () {
                                     if (formKey.currentState!.validate()) {
+                                      print(isSplit);
+                                      print(selectedSeat);
                                       widget.onTap(
                                         fullNameController.text,
                                         placeController.text,
@@ -469,7 +469,7 @@ class _PassengerDetailsDialogState extends State<PassengerDetailsDialog> {
                                         pendingAmountController.text.isEmpty ? "0" : pendingAmountController.text,
                                         secondaryMobileController.text,
                                         isSplit,
-                                        selectedSeat,
+                                        isSplit ? selectedSeat : "",
                                       );
                                       NavigationService.goBack;
                                     }

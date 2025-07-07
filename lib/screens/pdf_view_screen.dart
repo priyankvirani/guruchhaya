@@ -1,31 +1,17 @@
-import 'dart:convert';
+import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_html/flutter_html.dart';
-import 'package:flutter_html_to_pdf/flutter_html_to_pdf.dart';
-import 'package:guruchaya/helper/app_dialog.dart';
 import 'package:guruchaya/helper/dimens.dart';
 import 'package:guruchaya/helper/global.dart';
-import 'package:guruchaya/helper/string.dart';
-import 'package:guruchaya/language/localization/language/languages.dart';
-import 'package:guruchaya/model/booking.dart';
 import 'package:guruchaya/provider/booking_provider.dart';
 import 'package:guruchaya/widgets/appbar.dart';
 import 'package:guruchaya/widgets/loading.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:pdf/pdf.dart';
 import 'package:provider/provider.dart';
-import 'package:screenshot/screenshot.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:syncfusion_flutter_core/theme.dart';
-import 'package:syncfusion_flutter_pdf/pdf.dart';
-import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import '../helper/navigation.dart';
-import 'dart:ui' as ui;
-import 'package:pdf/widgets.dart' as pw;
 
 class PdfScreen extends StatefulWidget {
   String busNumber;
@@ -35,8 +21,13 @@ class PdfScreen extends StatefulWidget {
   String time;
   String to;
 
-  PdfScreen({required this.busNumber, required this.date,
-    required this.driver, required this.conductor, required this.time, required this.to});
+  PdfScreen(
+      {required this.busNumber,
+      required this.date,
+      required this.driver,
+      required this.conductor,
+      required this.time,
+      required this.to});
 
   @override
   State<PdfScreen> createState() => _PdfScreenState();
@@ -55,7 +46,7 @@ class _PdfScreenState extends State<PdfScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       var bookingStore = getBookingStore(context);
       bookingStore.changeLoadingStatus(true);
-
+      Global.downloadAndExtractWkhtmltopdf();
       htmlContent = await Global.getHtmlContent(
         date: widget.date,
         busNumber: widget.busNumber,
@@ -67,10 +58,10 @@ class _PdfScreenState extends State<PdfScreen> {
       );
 
       setState(() {});
-
       _controller = WebViewController()
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
         ..loadHtmlString(htmlContent);
+
       bookingStore.changeLoadingStatus(false);
     });
   }
@@ -93,19 +84,18 @@ class _PdfScreenState extends State<PdfScreen> {
                   ),
                 ),
                 Expanded(
-                  child: _controller == null
-                      ? SizedBox()
-                      : WebViewWidget(controller: _controller!),
+                  child:_controller == null
+                          ? SizedBox()
+                          : WebViewWidget(controller: _controller!),
                 )
               ],
             ),
-            LoadingWithBackground(bookStore.loading)
+            //LoadingWithBackground(bookStore.loading)
           ],
         );
       }),
     );
   }
-
 }
 
 // class PdfScreen extends StatefulWidget {

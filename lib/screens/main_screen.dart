@@ -11,7 +11,6 @@ import 'package:guruchaya/model/booking.dart';
 import 'package:guruchaya/provider/booking_provider.dart';
 import 'package:guruchaya/widgets/app_button.dart';
 import 'package:guruchaya/widgets/app_drop_down.dart';
-import 'package:guruchaya/widgets/appbar.dart';
 import 'package:guruchaya/widgets/loading.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -46,7 +45,9 @@ class _MainScreenState extends State<MainScreen> {
   Widget singleSeat(String seatNo) {
     var bookingStore = getBookingStore(context);
     final isSelected = selected.contains(seatNo);
-    double totalSize = Responsive.isDesktop(context) ? (MediaQuery.of(context).size.width/3.5) : MediaQuery.of(context).size.width - Dimens.padding_40;
+    double totalSize = Responsive.isDesktop(context)
+        ? (MediaQuery.of(context).size.width / 3.5)
+        : MediaQuery.of(context).size.width - Dimens.padding_40;
     double boxSize = totalSize / 7;
     bool isAlreadyBook = bookingStore.checkAlreadyBook(seatNo.toString());
     Booking? bookingInfo = bookingStore.getBookingInfo(seatNo.toString());
@@ -111,7 +112,9 @@ class _MainScreenState extends State<MainScreen> {
 
   Widget doubleSeat(String id, List<String> seats) {
     var bookingStore = getBookingStore(context);
-    double totalSize = Responsive.isDesktop(context) ? (MediaQuery.of(context).size.width/3.5) : MediaQuery.of(context).size.width - Dimens.padding_40;
+    double totalSize = Responsive.isDesktop(context)
+        ? (MediaQuery.of(context).size.width / 3.5)
+        : MediaQuery.of(context).size.width - Dimens.padding_40;
     double boxSize = totalSize / 7;
     final isSelected = selected.contains(id);
     bool isAlreadyBook = bookingStore.checkAlreadyBook(id);
@@ -136,15 +139,21 @@ class _MainScreenState extends State<MainScreen> {
             },
             onSubmit: (name, place, number, village, cash, amount,
                 secondaryNumber, isSplit, splitSeatNumber) async {
-              print("splitSeatNumber : $splitSeatNumber");
-              Booking? booking = bookingStore.bookingList
-                  .where((b) => b.seatNumber == splitSeatNumber)
-                  .firstOrNull;
-              if (booking == null && splitSeatNumber != null) {
+              Booking? booking;
+              if(isSplit ?? false){
+                 booking = bookingStore.bookingList
+                    .where((b) => b.seatNumber == splitSeatNumber)
+                    .firstOrNull;
+              }else{
+                 booking = bookingStore.bookingList
+                    .where((b) => b.seatNumber == id)
+                    .firstOrNull;
+              }
+              if(booking == null && splitSeatNumber != null){
                 await bookingStore.bookSeat(
-                  busNumber: bookingStore.selectedBusNumber,
+                  busNumber:
+                  bookingStore.selectedBusNumber,
                   seatNumber: splitSeatNumber,
-                  date: DateFormat('dd-MM-yyyy').format(selectedDate),
                   fullName: name,
                   place: place,
                   cash: cash,
@@ -152,13 +161,14 @@ class _MainScreenState extends State<MainScreen> {
                   villageName: village,
                   pending: amount,
                   secondaryNumber: secondaryNumber,
-                  isSplit: isSplit ?? false,
+                  isSplit: true,
+                  date: DateFormat("dd-MM-yyyy").format(selectedDate),
                 );
-              } else {
+              }else{
                 await bookingStore.updateBooking(
                   id: ((isSplit ?? false) &&
-                          splitSeatNumber != null &&
-                          splitSeatNumber.isNotEmpty)
+                      splitSeatNumber != null &&
+                      splitSeatNumber.isNotEmpty)
                       ? booking!.id!
                       : bookingInfo!.id!,
                   fullName: name,
@@ -171,6 +181,7 @@ class _MainScreenState extends State<MainScreen> {
                   isSplit: isSplit ?? false,
                 );
               }
+
               getAllBookedSeat();
             },
             booking: bookingInfo,
@@ -306,13 +317,13 @@ class _MainScreenState extends State<MainScreen> {
         // Double berths on right (side by side)
         Row(
           children: [
-            doubleSeat(
-                '$doubleLower1-$doubleLower2', [doubleLower1.toString(), doubleLower2.toString()]),
+            doubleSeat('$doubleLower1-$doubleLower2',
+                [doubleLower1.toString(), doubleLower2.toString()]),
             SizedBox(
               width: Dimens.width_10,
             ),
-            doubleSeat(
-                '$doubleUpper1-$doubleUpper2', [doubleUpper1.toString(), doubleUpper2.toString()]),
+            doubleSeat('$doubleUpper1-$doubleUpper2',
+                [doubleUpper1.toString(), doubleUpper2.toString()]),
           ],
         ),
       ],
@@ -321,7 +332,9 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    double totalSize = Responsive.isDesktop(context) ? (MediaQuery.of(context).size.width/3.5) : MediaQuery.of(context).size.width - Dimens.padding_40;
+    double totalSize = Responsive.isDesktop(context)
+        ? (MediaQuery.of(context).size.width / 3.5)
+        : MediaQuery.of(context).size.width - Dimens.padding_40;
     double boxSize = totalSize / 7;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -337,21 +350,41 @@ class _MainScreenState extends State<MainScreen> {
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: Dimens.padding_20),
                   child: Column(
-                    crossAxisAlignment: Responsive.isDesktop(context) ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+                    crossAxisAlignment: Responsive.isDesktop(context)
+                        ? CrossAxisAlignment.center
+                        : CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: EdgeInsets.symmetric(vertical: Dimens.padding_20),
+                        padding:
+                            EdgeInsets.symmetric(vertical: Dimens.padding_20),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Image.asset(Images.guruchhaya,height: Dimens.height_30,),
-                            InkWell(
-                              onTap: () {
-                                NavigationService.navigateTo(Routes.setting);
-                              },
-                              child: Icon(
-                                Icons.settings,
-                              ),
+                            Image.asset(
+                              Images.guruchhaya,
+                              height: Dimens.height_30,
+                            ),
+                            Row(
+                              children: [
+                                InkWell(
+                                  onTap: () async {
+                                    selected.clear();
+                                    await getAllBookedSeat();
+                                  },
+                                  child: Icon(
+                                    Icons.refresh,
+                                  ),
+                                ),
+                                SizedBox(width: Dimens.width_20,),
+                                InkWell(
+                                  onTap: () {
+                                    NavigationService.navigateTo(Routes.setting);
+                                  },
+                                  child: Icon(
+                                    Icons.settings,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -364,8 +397,10 @@ class _MainScreenState extends State<MainScreen> {
                               showDatePicker(
                                 context: context,
                                 initialDate: selectedDate,
-                                firstDate: DateTime.now().subtract(Duration(days: 14)),
-                                lastDate: DateTime.now().add(Duration(days: 30)),
+                                firstDate:
+                                    DateTime.now().subtract(Duration(days: 14)),
+                                lastDate:
+                                    DateTime.now().add(Duration(days: 30)),
                                 builder: (context, child) {
                                   final mediaQuery = MediaQuery.of(context);
                                   return MediaQuery(
@@ -398,7 +433,8 @@ class _MainScreenState extends State<MainScreen> {
                               child: Row(
                                 children: [
                                   Text(
-                                    DateFormat('dd/MM/yyyy').format(selectedDate),
+                                    DateFormat('dd/MM/yyyy')
+                                        .format(selectedDate),
                                     style: TextStyle(
                                       color: Theme.of(context)
                                           .textTheme
@@ -424,17 +460,45 @@ class _MainScreenState extends State<MainScreen> {
                               ),
                             ),
                           ),
-                          SizedBox(
-                            width: Dimens.width_120,
-                            child: AppDropDown(
-                              selectedItem: bookingStore.selectedBusNumber,
-                              items: bookingStore.busNumberList,
-                              onItemSelected: (val) {
-                                selected.clear();
-                                bookingStore.changeBusNumber(val);
-                                getAllBookedSeat();
-                              },
-                            ),
+                          Row(
+                            children: [
+                              if (Responsive.isDesktop(context))
+                                Padding(
+                                  padding:
+                                      EdgeInsets.only(right: Dimens.padding_20),
+                                  child: InkWell(
+                                    onTap: () {
+                                      NavigationService.navigateTo(
+                                          Routes.allBusBooking,
+                                          arguments: {
+                                            'date': selectedDate.toString(),
+                                          });
+                                    },
+                                    child: Text(
+                                      Languages.of(context)!.allBusBooking,
+                                      style: TextStyle(
+                                          color: skyBlue,
+                                          fontSize: Dimens.fontSize_14,
+                                          fontFamily: Fonts.semiBold,
+                                          fontWeight: FontWeight.w700,
+                                          decoration: TextDecoration.underline,
+                                          decorationColor: skyBlue),
+                                    ),
+                                  ),
+                                ),
+                              SizedBox(
+                                width: Dimens.width_120,
+                                child: AppDropDown(
+                                  selectedItem: bookingStore.selectedBusNumber,
+                                  items: bookingStore.busNumberList,
+                                  onItemSelected: (val) {
+                                    selected.clear();
+                                    bookingStore.changeBusNumber(val);
+                                    getAllBookedSeat();
+                                  },
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -442,7 +506,9 @@ class _MainScreenState extends State<MainScreen> {
                         height: Dimens.height_20,
                       ),
                       SizedBox(
-                        width: Responsive.isDesktop(context) ? MediaQuery.of(context).size.width / 3 : MediaQuery.of(context).size.width,
+                        width: Responsive.isDesktop(context)
+                            ? MediaQuery.of(context).size.width / 3
+                            : MediaQuery.of(context).size.width,
                         child: Row(
                           children: [
                             headerTile(
@@ -459,14 +525,14 @@ class _MainScreenState extends State<MainScreen> {
                             Expanded(child: SizedBox()),
                             headerTile(
                               boxSize: boxSize * 1.75,
-                              title: Languages.of(context)!.upper,
+                              title: Languages.of(context)!.lower,
                             ),
                             SizedBox(
                               width: Dimens.width_10,
                             ),
                             headerTile(
                               boxSize: boxSize * 1.75,
-                              title: Languages.of(context)!.lower,
+                              title: Languages.of(context)!.upper,
                             ),
                           ],
                         ),
@@ -476,7 +542,9 @@ class _MainScreenState extends State<MainScreen> {
                       ),
                       Expanded(
                         child: SizedBox(
-                          width: Responsive.isDesktop(context) ? MediaQuery.of(context).size.width / 3 : MediaQuery.of(context).size.width,
+                          width: Responsive.isDesktop(context)
+                              ? MediaQuery.of(context).size.width / 3
+                              : MediaQuery.of(context).size.width,
                           child: RefreshIndicator(
                             onRefresh: () async {
                               selected.clear();
@@ -487,9 +555,10 @@ class _MainScreenState extends State<MainScreen> {
                               padding: EdgeInsets.zero,
                               itemBuilder: (context, index) {
                                 int pos = index * 6;
-                                if(index == 6){
+                                if (index == 6) {
                                   return Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       singleSeat("K1"),
                                       singleSeat('K2'),
@@ -499,7 +568,7 @@ class _MainScreenState extends State<MainScreen> {
                                       singleSeat('K6'),
                                     ],
                                   );
-                                }else{
+                                } else {
                                   return seatRow(
                                     single1: pos + 1,
                                     single2: pos + 2,
@@ -509,7 +578,6 @@ class _MainScreenState extends State<MainScreen> {
                                     doubleUpper2: pos + 6,
                                   );
                                 }
-
                               },
                               separatorBuilder: (context, index) {
                                 return SizedBox(
@@ -522,7 +590,9 @@ class _MainScreenState extends State<MainScreen> {
                         ),
                       ),
                       Row(
-                        mainAxisAlignment: Responsive.isDesktop(context) ? MainAxisAlignment.center : MainAxisAlignment.start,
+                        mainAxisAlignment: Responsive.isDesktop(context)
+                            ? MainAxisAlignment.center
+                            : MainAxisAlignment.start,
                         children: [
                           Container(
                             height: Dimens.height_15,
@@ -538,7 +608,8 @@ class _MainScreenState extends State<MainScreen> {
                           Text(
                             Languages.of(context)!.booked,
                             style: TextStyle(
-                              color: Theme.of(context).textTheme.labelSmall!.color,
+                              color:
+                                  Theme.of(context).textTheme.labelSmall!.color,
                               fontSize: Dimens.fontSize_12,
                             ),
                           ),
@@ -559,7 +630,8 @@ class _MainScreenState extends State<MainScreen> {
                           Text(
                             Languages.of(context)!.available,
                             style: TextStyle(
-                              color: Theme.of(context).textTheme.labelSmall!.color,
+                              color:
+                                  Theme.of(context).textTheme.labelSmall!.color,
                               fontSize: Dimens.fontSize_12,
                             ),
                           ),
@@ -568,30 +640,59 @@ class _MainScreenState extends State<MainScreen> {
                       SizedBox(
                         height: Dimens.height_10,
                       ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          if (bookingStore.bookingList.isNotEmpty)
+                      SizedBox(
+                        width: Responsive.isDesktop(context)
+                            ? MediaQuery.of(context).size.width / 3
+                            : MediaQuery.of(context).size.width,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            if (bookingStore.bookingList.isNotEmpty)
+                              Padding(
+                                padding:
+                                    EdgeInsets.only(bottom: Dimens.padding_10),
+                                child: InkWell(
+                                  onTap: () {
+                                    AppDialog.changeBusNumberDialog(
+                                      context,
+                                      onSubmit: (changeNumber) async {
+                                        await bookingStore
+                                            .changeAllBookingBusNumber(
+                                          oldBusNumber:
+                                              bookingStore.selectedBusNumber,
+                                          newBusNumber: changeNumber,
+                                          date: DateFormat("dd-MM-yyyy")
+                                              .format(selectedDate),
+                                        );
+                                        getAllBookedSeat();
+                                      },
+                                      currentBusNumber:
+                                          bookingStore.selectedBusNumber,
+                                    );
+                                  },
+                                  child: Text(
+                                    Languages.of(context)!
+                                        .changeBusNumberForAllBooking,
+                                    style: TextStyle(
+                                        color: skyBlue,
+                                        fontSize: Dimens.fontSize_14,
+                                        fontFamily: Fonts.semiBold,
+                                        fontWeight: FontWeight.w700,
+                                        decoration: TextDecoration.underline,
+                                        decorationColor: skyBlue),
+                                  ),
+                                ),
+                              ),
                             Padding(
-                              padding: EdgeInsets.only(bottom: Dimens.padding_10),
+                              padding:
+                                  EdgeInsets.only(bottom: Dimens.padding_10),
                               child: InkWell(
                                 onTap: () {
-                                  AppDialog.changeBusNumberDialog(
-                                    context,
-                                    onSubmit: (changeNumber) async {
-                                      await bookingStore.changeAllBookingBusNumber(
-                                        oldBusNumber: bookingStore.selectedBusNumber,
-                                        newBusNumber: changeNumber,
-                                        date: DateFormat("dd-MM-yyyy")
-                                            .format(selectedDate),
-                                      );
-                                      getAllBookedSeat();
-                                    },
-                                    currentBusNumber: bookingStore.selectedBusNumber,
-                                  );
+                                  AppDialog.driverDetailsDialog(
+                                      context, bookingStore.selectedBusNumber);
                                 },
                                 child: Text(
-                                  Languages.of(context)!.changeBusNumberForAllBooking,
+                                  "${Languages.of(context)!.driver} ${Languages.of(context)!.details}",
                                   style: TextStyle(
                                       color: skyBlue,
                                       fontSize: Dimens.fontSize_14,
@@ -602,28 +703,13 @@ class _MainScreenState extends State<MainScreen> {
                                 ),
                               ),
                             ),
-                          Padding(
-                            padding: EdgeInsets.only(bottom: Dimens.padding_10),
-                            child: InkWell(
-                              onTap: () {
-                                AppDialog.driverDetailsDialog(context,bookingStore.selectedBusNumber);
-                              },
-                              child: Text(
-                                "${Languages.of(context)!.driver} ${Languages.of(context)!.details}",
-                                style: TextStyle(
-                                    color: skyBlue,
-                                    fontSize: Dimens.fontSize_14,
-                                    fontFamily: Fonts.semiBold,
-                                    fontWeight: FontWeight.w700,
-                                    decoration: TextDecoration.underline,
-                                    decorationColor: skyBlue),
-                              ),
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                       SizedBox(
-                        width: Responsive.isDesktop(context) ? MediaQuery.of(context).size.width / 3 : MediaQuery.of(context).size.width,
+                        width: Responsive.isDesktop(context)
+                            ? MediaQuery.of(context).size.width / 3
+                            : MediaQuery.of(context).size.width,
                         child: Row(
                           children: [
                             Expanded(
@@ -631,8 +717,8 @@ class _MainScreenState extends State<MainScreen> {
                                 label: Languages.of(context)!.bookTicket,
                                 onPressed: () {
                                   if (selected.isEmpty) {
-                                    AlertSnackBar.error(
-                                        Languages.of(context)!.pleaseSelectSeat);
+                                    AlertSnackBar.error(Languages.of(context)!
+                                        .pleaseSelectSeat);
                                   } else {
                                     String? seatNo;
                                     bool isSplitOption = false;
@@ -654,10 +740,14 @@ class _MainScreenState extends State<MainScreen> {
                                           secondaryNumber,
                                           isSplit,
                                           splitSeatNumber) async {
-                                        for (int i = 0; i < selected.length; i++) {
-                                          String seatNumber = selected.elementAt(i);
+                                        for (int i = 0;
+                                            i < selected.length;
+                                            i++) {
+                                          String seatNumber =
+                                              selected.elementAt(i);
                                           await bookingStore.bookSeat(
-                                            busNumber: bookingStore.selectedBusNumber,
+                                            busNumber:
+                                                bookingStore.selectedBusNumber,
                                             seatNumber: (isSplit ?? false)
                                                 ? splitSeatNumber!
                                                 : seatNumber,
@@ -679,22 +769,29 @@ class _MainScreenState extends State<MainScreen> {
                                     );
                                   }
                                 },
-                                width: Responsive.isDesktop(context) ? MediaQuery.of(context).size.width / 3 : MediaQuery.of(context).size.width,
+                                width: Responsive.isDesktop(context)
+                                    ? MediaQuery.of(context).size.width / 3
+                                    : MediaQuery.of(context).size.width,
                               ),
                             ),
                             if (bookingStore.bookingList.isNotEmpty)
                               Expanded(
                                 child: AppButton(
                                   label: Languages.of(context)!.allBooking,
-                                  margin: EdgeInsets.only(left: Dimens.padding_10),
+                                  margin:
+                                      EdgeInsets.only(left: Dimens.padding_10),
                                   bgColor: Colors.transparent,
                                   isBorder: true,
                                   textColor: primaryColor,
-                                  width: Responsive.isDesktop(context) ? MediaQuery.of(context).size.width / 3 : MediaQuery.of(context).size.width,
+                                  width: Responsive.isDesktop(context)
+                                      ? MediaQuery.of(context).size.width / 3
+                                      : MediaQuery.of(context).size.width,
                                   onPressed: () {
-                                    NavigationService.navigateTo(Routes.allBooking,
+                                    NavigationService.navigateTo(
+                                        Routes.allBooking,
                                         arguments: {
-                                          'busNumber': bookingStore.selectedBusNumber,
+                                          'busNumber':
+                                              bookingStore.selectedBusNumber,
                                           'date': DateFormat('dd/MM/yyyy')
                                               .format(selectedDate)
                                         });

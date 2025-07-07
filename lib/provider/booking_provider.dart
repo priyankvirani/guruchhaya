@@ -68,7 +68,7 @@ class BookingController extends ChangeNotifier {
 
   List<Booking> bookingList = [];
 
-  Future<void> getBookedSeats(String busNumber, String date) async {
+  Future<List<Booking>> getBookedSeats(String busNumber, String date) async {
     changeLoadingStatus(true);
     final supabase = Supabase.instance.client;
     final response = await supabase
@@ -87,6 +87,28 @@ class BookingController extends ChangeNotifier {
       bookingList.add(booking);
     }
     notifyListeners();
+    return bookingList;
+  }
+
+  Future<List<Booking>> getAllBookingSeat(String busNumber, String date) async {
+    final supabase = Supabase.instance.client;
+    final response = await supabase
+        .from('bus_bookings')
+        .select()
+        .eq('date', date)
+        .eq('bus_number', busNumber);
+    changeLoadingStatus(false);
+    if (response == null) {
+      throw Exception('No data found');
+    }
+
+    List<Booking> bookings = [];
+    for (var item in response) {
+      Booking booking = Booking.fromJson(item);
+      bookings.add(booking);
+    }
+    notifyListeners();
+    return bookings;
   }
 
   bool checkAlreadyBook(String seatNumber) {
@@ -179,7 +201,6 @@ class BookingController extends ChangeNotifier {
     required String secondaryMobileNumber,
     bool isSplit = false,
   }) async {
-    print("mobileNumber : ${mobileNumber}");
     changeLoadingStatus(true);
     final updates = {
       'cash': cash,
@@ -190,6 +211,7 @@ class BookingController extends ChangeNotifier {
       'village_name': villageName,
       'pending': pendingAmount
     };
+    print("updateBooking : ${updates}");
     final supabase = Supabase.instance.client;
     await supabase.from('bus_bookings').update(updates).eq('id', id);
     changeLoadingStatus(false);

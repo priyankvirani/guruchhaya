@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:guruchaya/helper/colors.dart';
@@ -10,7 +13,9 @@ import 'package:guruchaya/model/booking.dart';
 import 'package:guruchaya/provider/booking_provider.dart';
 import 'package:guruchaya/widgets/appbar.dart';
 import 'package:guruchaya/widgets/loading.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../helper/shared_preference.dart';
 import '../helper/string.dart';
@@ -51,16 +56,41 @@ class _AllBookingScreenState extends State<AllBookingScreen> {
                         actions: [
                           InkWell(
                             onTap: () async {
-                              Map<String, dynamic>? data = await Preferences.getDriverDetails(widget.busNumber);
-                              NavigationService.navigateTo(Routes.pdfView,
-                                  arguments: {
-                                    'busNumber': widget.busNumber,
-                                    'date': widget.date,
-                                    'driver': data?['driverName'] ?? '',
-                                    'conductor': data?['conductorName'] ?? '',
-                                    'time': data?['time'] ?? '',
-                                    'to': data?['toVillageName'] ?? '',
-                                  });
+                              if(Platform.isWindows){
+                                Map<String, dynamic>? data = await Preferences.getDriverDetails(widget.busNumber);
+                                bookingStore.changeLoadingStatus(true);
+                                htmlContent = await Global.getHtmlContent(
+                                  date: widget.date,
+                                  busNumber: widget.busNumber,
+                                  scaleFactor: MediaQuery.of(context).textScaleFactor,
+                                  driver: data?['driverName'] ?? '',
+                                  conductor: data?['conductorName'] ?? '',
+                                  time: data?['time'] ?? '',
+                                  suratTo: data?['toVillageName'] ?? '',
+                                );
+                                bookingStore.changeLoadingStatus(false);
+
+                                final tempDir = await getTemporaryDirectory();
+                                final htmlFile = File('${tempDir.path}/preview.html');
+                                await htmlFile.writeAsString(htmlContent);
+
+                                final uri = Uri.file(htmlFile.path);
+                                final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                if (!launched) {
+                                  throw 'Could not launch HTML file.';
+                                }
+                              }else{
+                                Map<String, dynamic>? data = await Preferences.getDriverDetails(widget.busNumber);
+                                NavigationService.navigateTo(Routes.pdfView,
+                                    arguments: {
+                                      'busNumber': widget.busNumber,
+                                      'date': widget.date,
+                                      'driver': data?['driverName'] ?? '',
+                                      'conductor': data?['conductorName'] ?? '',
+                                      'time': data?['time'] ?? '',
+                                      'to': data?['toVillageName'] ?? '',
+                                    });
+                              }
                             },
                             child: Image.asset(
                               Images.view,
@@ -84,10 +114,25 @@ class _AllBookingScreenState extends State<AllBookingScreen> {
                                 suratTo: data?['toVillageName'] ?? '',
                               );
                               bookingStore.changeLoadingStatus(false);
-                              Global.downloadPDF(
-                                  htmlContent: htmlContent,
-                                  busNumber: widget.busNumber,
-                                  date: widget.date);
+                              if(Platform.isWindows){
+                                final tempDir = await getTemporaryDirectory();
+                                final htmlFile = File('${tempDir.path}/preview.html');
+                                await htmlFile.writeAsString(htmlContent);
+
+                                final uri = Uri.file(htmlFile.path);
+                                final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                if (!launched) {
+                                  throw 'Could not launch HTML file.';
+                                }
+                              }else{
+
+                                Global.downloadPDF(
+                                    htmlContent: htmlContent,
+                                    busNumber: widget.busNumber,
+                                    date: widget.date);
+                              }
+
+
                             },
                             child: Image.asset(
                               Images.download,
@@ -112,10 +157,23 @@ class _AllBookingScreenState extends State<AllBookingScreen> {
                                 suratTo: data?['toVillageName'] ?? '',
                               );
                               bookingStore.changeLoadingStatus(false);
-                              Global.sharePDF(
-                                  htmlContent: htmlContent,
-                                  busNumber: widget.busNumber,
-                                  date: widget.date);
+
+                              if(Platform.isWindows){
+                                final tempDir = await getTemporaryDirectory();
+                                final htmlFile = File('${tempDir.path}/preview.html');
+                                await htmlFile.writeAsString(htmlContent);
+
+                                final uri = Uri.file(htmlFile.path);
+                                final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                if (!launched) {
+                                  throw 'Could not launch HTML file.';
+                                }
+                              }else{
+                                Global.sharePDF(
+                                    htmlContent: htmlContent,
+                                    busNumber: widget.busNumber,
+                                    date: widget.date);
+                              }
                             },
                             child: Image.asset(
                               Images.share,
@@ -147,7 +205,7 @@ class _AllBookingScreenState extends State<AllBookingScreen> {
                 ),
               ),
             ),
-            LoadingWithBackground(bookingStore.loading)
+            //LoadingWithBackground(bookingStore.loading)
           ],
         );
       }),

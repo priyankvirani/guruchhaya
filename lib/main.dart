@@ -1,7 +1,7 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:guruchaya/helper/global.dart';
 import 'package:guruchaya/provider/auth_provider.dart';
 import 'package:guruchaya/provider/booking_provider.dart';
 import 'package:guruchaya/provider/theme_provider.dart';
@@ -9,7 +9,6 @@ import 'package:guruchaya/screens/splash.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
 import 'helper/app_theme.dart';
 import 'helper/navigation.dart';
 import 'helper/routes.dart';
@@ -27,6 +26,7 @@ Future<void> main() async {
     anonKey: SupaBaseKeys.apiKey,
   );
   SharedPref.pref = await SharedPreferences.getInstance();
+  Global.downloadAndExtractWkhtmltopdf();
   runApp(
     MultiProvider(
       providers: [

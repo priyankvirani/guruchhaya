@@ -176,6 +176,8 @@ class LanguageGu extends Languages {
   @override
   String get saved => "સેવ કરેલ છે";
 
+  @override
+  String get allBusBooking => "તમામ બસના બુકિંગ";
 
 
 }

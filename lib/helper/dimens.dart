@@ -141,7 +141,7 @@ class Dimens {
   static double width_160 = 160;
   static double width_200 = 200;
   static double width_260 = 260;
-  static double width_303 = 303;
+  static double width_300 = 300;
   static double width_400 = 400;
 
   // Add all radius sizes here

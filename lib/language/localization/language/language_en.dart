@@ -176,4 +176,7 @@ class LanguageEn extends Languages {
   @override
   String get saved => "Saved";
 
+  @override
+  String get allBusBooking => "All bus booking";
+
 }

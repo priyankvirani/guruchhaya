@@ -5,6 +5,7 @@ import 'package:guruchaya/screens/pdf_view_screen.dart';
 import 'package:guruchaya/screens/setting_screen.dart';
 import 'package:page_transition/page_transition.dart';
 
+import '../screens/all_bus_booking_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/splash.dart';
 
@@ -15,6 +16,7 @@ class Routes {
   static const String allBooking = "/allBooking";
   static const String setting = "/setting";
   static const String pdfView = "/pdfView";
+  static const String allBusBooking = "/allBusBooking";
 }
 
 class RouteGenerator {
@@ -47,6 +49,8 @@ class RouteGenerator {
         ));
       case Routes.setting:
         return fadePageTransition(SettingScreen());
+      case Routes.allBusBooking:
+        return fadePageTransition(AllBusBookingScreen(args['date']));
       default:
         return _errorRoutes();
     }

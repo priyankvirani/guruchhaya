@@ -176,4 +176,7 @@ class LanguageHi extends Languages {
   @override
   String get saved => "सेव किया गया";
 
+  @override
+  String get allBusBooking => "सभी बस बुकिंग";
+
 }

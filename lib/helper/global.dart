@@ -6,12 +6,21 @@ import 'package:flutter_html_to_pdf/flutter_html_to_pdf.dart';
 import 'package:guruchaya/helper/navigation.dart';
 import 'package:guruchaya/helper/snackbar.dart';
 import 'package:guruchaya/helper/string.dart';
+import 'package:guruchaya/language/localization/language/languages.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:pdf/pdf.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:path/path.dart' as p;
 
 import '../model/booking.dart';
 import '../provider/booking_provider.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:archive/archive_io.dart';
+import 'package:http/http.dart' as http;
+
+
 
 class Global {
   static List<String> seatLayout = [
@@ -100,7 +109,7 @@ class Global {
 <html lang="gu">
 <head>
   <meta charset="UTF-8">
-  <title>Gujarati Table - A4 View</title>
+  <title>${Languages.of(NavigationService.context)!.guruchhayaTravels}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
   <!-- Google Fonts -->
@@ -407,9 +416,22 @@ class Global {
           mobileNumber = '$mobileNumber / ${booking.secondaryMobileNumber}';
         }
       }
+      if((booking.cash ?? "0").contains("<br>")){
+        totalAmount += double.parse(booking.cash!.split('<br>').first);
+        totalAmount += double.parse(booking.cash!.split('<br>').last);
+      }else{
+        totalAmount += double.parse(booking.cash ?? "0");
+      }
 
-      totalAmount += double.parse(booking.cash ?? "0");
-      totalPendingAmount += double.parse(booking.pending ?? "0");
+      if((booking.pending ?? "0").contains("<br>")){
+        totalPendingAmount += double.parse(booking.pending!.split('<br>').first);
+        totalPendingAmount += double.parse(booking.pending!.split('<br>').last);
+      }else{
+        totalPendingAmount += double.parse(booking.pending ?? "0");
+      }
+
+
+
 
       if (seat == "Total") {
         rows += '''
@@ -473,7 +495,7 @@ class Global {
       dir = Directory('/storage/emulated/0/Download'); // Default Downloads path
     } else if (Platform.isIOS) {
       dir = await getApplicationDocumentsDirectory();
-    } else if (Platform.isMacOS) {}
+    }
 
     final filePath = await FlutterHtmlToPdf.convertFromHtmlContent(
       htmlContent,
@@ -482,6 +504,8 @@ class Global {
     );
 
     AlertSnackBar.success("✅ PDF saved to: ${filePath.path}");
+
+
   }
 
   static Future<void> requestPermission() async {
@@ -491,4 +515,29 @@ class Global {
       // Show error or request again
     }
   }
+
+ static Future<String> downloadAndExtractWkhtmltopdf() async {
+   final url = Uri.parse(
+     'https://github.com/wkhtmltopdf/packaging/releases/download/'
+         '0.12.6-1/wkhtmltox-0.12.6-1.msvc2015-win64.exe',
+   );
+
+   final response = await http.head(url);
+   if (response.statusCode != 302 && response.statusCode != 200) {
+     throw Exception('Installer not found (HTTP ${response.statusCode})');
+   }
+
+   final dir = await getApplicationSupportDirectory();
+   final installerPath = p.join(dir.path, 'wkhtmltox-installer.exe');
+
+   final exeResp = await http.get(url);
+   if (exeResp.statusCode != 200) {
+     throw Exception('Failed to download installer');
+   }
+
+   await File(installerPath).writeAsBytes(exeResp.bodyBytes);
+    print(installerPath);
+   return installerPath;
+  }
+
 }

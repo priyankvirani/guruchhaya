@@ -1,15 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_html/flutter_html.dart';
 import 'package:guruchaya/helper/dimens.dart';
 import 'package:guruchaya/helper/global.dart';
 import 'package:guruchaya/provider/booking_provider.dart';
 import 'package:guruchaya/widgets/appbar.dart';
-import 'package:guruchaya/widgets/loading.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -46,7 +41,6 @@ class _PdfScreenState extends State<PdfScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       var bookingStore = getBookingStore(context);
       bookingStore.changeLoadingStatus(true);
-      Global.downloadAndExtractWkhtmltopdf();
       htmlContent = await Global.getHtmlContent(
         date: widget.date,
         busNumber: widget.busNumber,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:guruchaya/screens/main_screen.dart';
 import 'package:guruchaya/screens/all_booking_screen.dart';
 import 'package:guruchaya/screens/pdf_view_screen.dart';
+import 'package:guruchaya/screens/pdf_view_windows_screen.dart';
 import 'package:guruchaya/screens/setting_screen.dart';
 import 'package:page_transition/page_transition.dart';
 
@@ -16,6 +17,7 @@ class Routes {
   static const String allBooking = "/allBooking";
   static const String setting = "/setting";
   static const String pdfView = "/pdfView";
+  static const String pdfWindowsView = "/pdfWindowsView";
   static const String allBusBooking = "/allBusBooking";
 }
 
@@ -40,6 +42,15 @@ class RouteGenerator {
         ));
       case Routes.pdfView:
         return fadePageTransition(PdfScreen(
+          busNumber: args['busNumber'],
+          date: args['date'],
+          driver: args['driver'],
+          conductor: args['conductor'],
+          time: args['time'],
+          to: args['to'],
+        ));
+      case Routes.pdfWindowsView:
+        return fadePageTransition(PdfWindowsScreen(
           busNumber: args['busNumber'],
           date: args['date'],
           driver: args['driver'],

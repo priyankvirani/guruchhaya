@@ -26,7 +26,6 @@ Future<void> main() async {
     anonKey: SupaBaseKeys.apiKey,
   );
   SharedPref.pref = await SharedPreferences.getInstance();
-  Global.downloadAndExtractWkhtmltopdf();
   runApp(
     MultiProvider(
       providers: [

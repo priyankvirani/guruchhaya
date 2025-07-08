@@ -56,8 +56,28 @@ class _AllBookingScreenState extends State<AllBookingScreen> {
                         actions: [
                           InkWell(
                             onTap: () async {
+                              Map<String, dynamic>? data = await Preferences.getDriverDetails(widget.busNumber);
                               if(Platform.isWindows){
-                                Map<String, dynamic>? data = await Preferences.getDriverDetails(widget.busNumber);
+                                NavigationService.navigateTo(Routes.pdfWindowsView,
+                                    arguments: {
+                                      'busNumber': widget.busNumber,
+                                      'date': widget.date,
+                                      'driver': data?['driverName'] ?? '',
+                                      'conductor': data?['conductorName'] ?? '',
+                                      'time': data?['time'] ?? '',
+                                      'to': data?['toVillageName'] ?? '',
+                                    });
+                              }else if(Platform.isAndroid || Platform.isIOS){
+                                NavigationService.navigateTo(Routes.pdfView,
+                                    arguments: {
+                                      'busNumber': widget.busNumber,
+                                      'date': widget.date,
+                                      'driver': data?['driverName'] ?? '',
+                                      'conductor': data?['conductorName'] ?? '',
+                                      'time': data?['time'] ?? '',
+                                      'to': data?['toVillageName'] ?? '',
+                                    });
+                              }else{
                                 bookingStore.changeLoadingStatus(true);
                                 htmlContent = await Global.getHtmlContent(
                                   date: widget.date,
@@ -79,17 +99,6 @@ class _AllBookingScreenState extends State<AllBookingScreen> {
                                 if (!launched) {
                                   throw 'Could not launch HTML file.';
                                 }
-                              }else{
-                                Map<String, dynamic>? data = await Preferences.getDriverDetails(widget.busNumber);
-                                NavigationService.navigateTo(Routes.pdfView,
-                                    arguments: {
-                                      'busNumber': widget.busNumber,
-                                      'date': widget.date,
-                                      'driver': data?['driverName'] ?? '',
-                                      'conductor': data?['conductorName'] ?? '',
-                                      'time': data?['time'] ?? '',
-                                      'to': data?['toVillageName'] ?? '',
-                                    });
                               }
                             },
                             child: Image.asset(

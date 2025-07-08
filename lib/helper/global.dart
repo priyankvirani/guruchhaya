@@ -8,17 +8,10 @@ import 'package:guruchaya/helper/snackbar.dart';
 import 'package:guruchaya/helper/string.dart';
 import 'package:guruchaya/language/localization/language/languages.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:pdf/pdf.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:path/path.dart' as p;
-
 import '../model/booking.dart';
 import '../provider/booking_provider.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:archive/archive_io.dart';
-import 'package:http/http.dart' as http;
 
 
 
@@ -514,30 +507,6 @@ class Global {
     } else {
       // Show error or request again
     }
-  }
-
- static Future<String> downloadAndExtractWkhtmltopdf() async {
-   final url = Uri.parse(
-     'https://github.com/wkhtmltopdf/packaging/releases/download/'
-         '0.12.6-1/wkhtmltox-0.12.6-1.msvc2015-win64.exe',
-   );
-
-   final response = await http.head(url);
-   if (response.statusCode != 302 && response.statusCode != 200) {
-     throw Exception('Installer not found (HTTP ${response.statusCode})');
-   }
-
-   final dir = await getApplicationSupportDirectory();
-   final installerPath = p.join(dir.path, 'wkhtmltox-installer.exe');
-
-   final exeResp = await http.get(url);
-   if (exeResp.statusCode != 200) {
-     throw Exception('Failed to download installer');
-   }
-
-   await File(installerPath).writeAsBytes(exeResp.bodyBytes);
-    print(installerPath);
-   return installerPath;
   }
 
 }

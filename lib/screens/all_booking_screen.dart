@@ -12,7 +12,6 @@ import 'package:guruchaya/language/localization/language/languages.dart';
 import 'package:guruchaya/model/booking.dart';
 import 'package:guruchaya/provider/booking_provider.dart';
 import 'package:guruchaya/widgets/appbar.dart';
-import 'package:guruchaya/widgets/loading.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';

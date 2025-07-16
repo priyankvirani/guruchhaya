@@ -34,6 +34,8 @@ class AppTextField extends StatelessWidget {
   final Color? fillColor;
   final String? labelText;
   final Color? prefixColor;
+  final TextStyle? textStyle;
+
   const AppTextField(
       {super.key,
       required this.titleText,
@@ -62,7 +64,9 @@ class AppTextField extends StatelessWidget {
       this.borderColor,
       this.fillColor = backgroundColor,
       this.labelText,
-      this.prefixColor = textFieldIconColor});
+      this.prefixColor = textFieldIconColor,
+      this.textStyle,
+      });
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +88,7 @@ class AppTextField extends StatelessWidget {
         ),
         TextFormField(
           controller: controller,
-          style: TextStyle(
+          style: textStyle ?? TextStyle(
             fontSize: Dimens.fontSize_12,
             color: textColor,
             fontFamily: Fonts.medium,

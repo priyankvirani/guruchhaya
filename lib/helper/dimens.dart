@@ -139,6 +139,7 @@ class Dimens {
   static double width_130 = 130;
   static double width_150 = 150;
   static double width_160 = 160;
+  static double width_180 = 180;
   static double width_200 = 200;
   static double width_260 = 260;
   static double width_300 = 300;
@@ -230,9 +231,12 @@ class Dimens {
   static double dimen_120 = 120;
   static double dimen_140 = 140;
   static double dimen_150 = 150;
+  static double dimen_200 = 200;
+  static double dimen_220 = 220;
   static double dimen_400 = 400;
   static double dimen_500 = 500;
-  static double dimen_220 = 220;
+  static double dimen_550 = 550;
+
 
   // Add all margin here
   static double margin_0 = 0;

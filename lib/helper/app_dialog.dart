@@ -8,6 +8,7 @@ import '../screens/dialog/change_bus_number_dialog.dart';
 import '../screens/dialog/confirmation_dialog.dart';
 import '../screens/dialog/language_dialog.dart';
 import '../screens/dialog/passenger_details_dialog.dart';
+import '../screens/dialog/selected_bus_number_dialog.dart';
 
 
 class AppDialog {
@@ -75,6 +76,15 @@ class AppDialog {
       context: context,
       builder: (BuildContext context) {
         return ChangeBusNumberDialog(currentBusNumber,onSubmit);
+      },
+    );
+  }
+
+  static selectBusNumbersDialog(BuildContext context,{required List<String> selectedNumber , required Function(List<String> val) onSubmit}){
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return SelectedBusNumberDialog(selectedNumber, onSubmit);
       },
     );
   }

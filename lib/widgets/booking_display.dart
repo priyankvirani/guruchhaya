@@ -2,141 +2,231 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:guruchaya/helper/colors.dart';
 import 'package:guruchaya/helper/dimens.dart';
+import 'package:guruchaya/helper/routes.dart';
 import 'package:guruchaya/helper/string.dart';
 import 'package:intl/intl.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../helper/app_dialog.dart';
+import '../helper/navigation.dart';
+import '../helper/responsive.dart';
+import '../language/localization/language/languages.dart';
 import '../model/booking.dart';
 import '../provider/booking_provider.dart';
 
 class BookingDisplayWidget extends StatefulWidget {
   String busNumber;
   DateTime selectedDate;
+  Function(Set<String>) onChangeSeat;
 
-  BookingDisplayWidget(this.busNumber, this.selectedDate);
+  BookingDisplayWidget({required this.busNumber,required this.selectedDate,required this.onChangeSeat});
 
   @override
   State<BookingDisplayWidget> createState() => _BookingDisplayWidgetState();
 }
 
 class _BookingDisplayWidgetState extends State<BookingDisplayWidget> {
+
   List<Booking> bookingList = [];
+
+  final Set<String> selected = {};
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      getAllBooking();
+
     });
   }
 
-  getAllBooking() async {
-    var bookingStore = getBookingStore(context);
-    bookingList = await bookingStore.getAllBookingSeat(
-        widget.busNumber, DateFormat('dd-MM-yyyy').format(widget.selectedDate));
-    setState(() {});
-  }
+
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(
-          left: Dimens.dimen_18,
-          right: Dimens.dimen_18,
-          bottom: Dimens.dimen_18),
-      decoration: BoxDecoration(
-        border: Border.all(color: skyBlue, width: Dimens.dimen_1),
-        borderRadius: BorderRadius.circular(
-          Dimens.circularRadius_12,
-        ),
-      ),
-      width: Dimens.width_300,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: Dimens.padding_20,vertical: Dimens.padding_5),
-              decoration: BoxDecoration(
-                color: skyBlue,
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(Dimens.circularRadius_12),
-                  bottomRight: Radius.circular(
-                    Dimens.circularRadius_12,
-                  ),
-                ),
-              ),
-              child: Text(
-                widget.busNumber,
-                style: TextStyle(
-                  color: Theme.of(context).textTheme.labelMedium!.color,
-                  fontSize: Dimens.fontSize_14,
-                  fontFamily: Fonts.medium,
-                ),
-              ),
+    return StreamBuilder<List<Booking>>(
+      stream: streamBookingSeat(
+          widget.busNumber,
+          DateFormat('dd-MM-yyyy').format(widget.selectedDate)),
+      builder: (context, snapshot) {
+        bookingList = snapshot.data ?? [];
+        return Container(
+          padding: EdgeInsets.only(
+              left: Dimens.dimen_20,
+              right: Dimens.dimen_20,
+              bottom: Dimens.dimen_20),
+          decoration: BoxDecoration(
+            border: Border.all(color: skyBlue, width: Dimens.dimen_1),
+            borderRadius: BorderRadius.circular(
+              Dimens.circularRadius_12,
             ),
           ),
-          SizedBox(
-            height: Dimens.height_10,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: Dimens.padding_20, vertical: Dimens.padding_10),
+                    decoration: BoxDecoration(
+                      color: skyBlue,
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(Dimens.circularRadius_12),
+                        bottomRight: Radius.circular(
+                          Dimens.circularRadius_12,
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      widget.busNumber,
+                      style: TextStyle(
+                        color: Theme.of(context).textTheme.labelMedium!.color,
+                        fontSize: Dimens.fontSize_14,
+                        fontFamily: Fonts.medium,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: Dimens.width_20,),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: Dimens.height_5,),
+                      if (bookingList.isNotEmpty)
+                        InkWell(
+                          onTap: () {
+                            AppDialog.changeBusNumberDialog(
+                              context,
+                              onSubmit: (changeNumber) async {
+                                await getBookingStore(context)
+                                    .changeAllBookingBusNumber(
+                                  oldBusNumber: widget.busNumber,
+                                  newBusNumber: changeNumber,
+                                  date: DateFormat("dd-MM-yyyy").format(widget.selectedDate),
+                                );
+                              },
+                              currentBusNumber: widget.busNumber,
+                            );
+                          },
+                          child: Text(
+                            Languages.of(context)!
+                                .changeBusNumberForAllBooking,
+                            style: TextStyle(
+                                color: skyBlue,
+                                fontSize: Dimens.fontSize_14,
+                                fontFamily: Fonts.semiBold,
+                                fontWeight: FontWeight.w700,
+                                decoration: TextDecoration.underline,
+                                decorationColor: skyBlue),
+                          ),
+                        ),
+                      InkWell(
+                        onTap: () {
+                          AppDialog.driverDetailsDialog(
+                              context, widget.busNumber);
+                        },
+                        child: Text(
+                          "${Languages.of(context)!.driver} ${Languages.of(context)!.details}",
+                          style: TextStyle(
+                              color: skyBlue,
+                              fontSize: Dimens.fontSize_14,
+                              fontFamily: Fonts.semiBold,
+                              fontWeight: FontWeight.w700,
+                              decoration: TextDecoration.underline,
+                              decorationColor: skyBlue),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Expanded(child: SizedBox()),
+                  if (bookingList.isNotEmpty)
+                  InkWell(
+                    onTap: (){
+                      NavigationService.navigateTo(
+                          Routes.allBooking,
+                          arguments: {
+                            'busNumber': widget.busNumber,
+                            'date': DateFormat('dd/MM/yyyy')
+                                .format(widget.selectedDate)
+                          });
+                    },
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: Dimens.padding_20, vertical: Dimens.padding_10),
+                      decoration: BoxDecoration(
+                        color: primaryColor,
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(Dimens.circularRadius_12),
+                          bottomRight: Radius.circular(
+                            Dimens.circularRadius_12,
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        Languages.of(context)!.allBooking,
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.labelMedium!.color,
+                          fontSize: Dimens.fontSize_14,
+                          fontFamily: Fonts.medium,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              ListView.separated(
+                physics: NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                padding: EdgeInsets.zero,
+                itemBuilder: (context, index) {
+                  int pos = index * 6;
+                  if (index == 6) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        singleSeat("K1"),
+                        singleSeat('K2'),
+                        singleSeat("K3"),
+                        singleSeat('K4'),
+                        singleSeat('K5'),
+                        singleSeat('K6'),
+                      ],
+                    );
+                  } else {
+                    return seatRow(
+                      single1: pos + 1,
+                      single2: pos + 2,
+                      doubleLower1: pos + 3,
+                      doubleLower2: pos + 4,
+                      doubleUpper1: pos + 5,
+                      doubleUpper2: pos + 6,
+                    );
+                  }
+                },
+                separatorBuilder: (context, index) {
+                  return SizedBox(
+                    height: Dimens.height_5,
+                  );
+                },
+                itemCount: 7,
+              ),
+            ],
           ),
-          ListView.separated(
-            physics: NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            padding: EdgeInsets.zero,
-            itemBuilder: (context, index) {
-              int pos = index * 6;
-              if (index == 6) {
-                return Row(
-                  children: [
-                    singleSeat("K1"),
-                    SizedBox(
-                      width: Dimens.width_5,
-                    ),
-                    singleSeat('K2'),
-                    SizedBox(
-                      width: Dimens.width_5,
-                    ),
-                    singleSeat("K3"),
-                    SizedBox(
-                      width: Dimens.width_5,
-                    ),
-                    singleSeat('K4'),
-                    SizedBox(
-                      width: Dimens.width_5,
-                    ),
-                    singleSeat('K5'),
-                    SizedBox(
-                      width: Dimens.width_5,
-                    ),
-                    singleSeat('K6'),
-                  ],
-                );
-              } else {
-                return seatRow(
-                  single1: pos + 1,
-                  single2: pos + 2,
-                  doubleLower1: pos + 3,
-                  doubleLower2: pos + 4,
-                  doubleUpper1: pos + 5,
-                  doubleUpper2: pos + 6,
-                );
-              }
-            },
-            separatorBuilder: (context, index) {
-              return SizedBox(
-                height: Dimens.height_5,
-              );
-            },
-            itemCount: 7,
-          ),
-        ],
-      ),
+        );
+      }
     );
   }
 
   Widget singleSeat(String seatNo) {
     bool isAlreadyBook = checkAlreadyBook(seatNo.toString());
+    final isSelected = selected.contains(seatNo);
     Booking? bookingInfo = getBookingInfo(seatNo.toString());
+    double totalWidth =
+        ((MediaQuery.of(context).size.width - Dimens.dimen_200) / 3) -
+            Dimens.width_50;
+    double boxSize = (totalWidth - Dimens.dimen_20) / 7;
     return GestureDetector(
       onTap: () {
         var bookingStore = getBookingStore(context);
@@ -148,7 +238,6 @@ class _BookingDisplayWidgetState extends State<BookingDisplayWidget> {
                   busNumber: widget.busNumber,
                   seatNumber: seatNo.toString(),
                   date: DateFormat('dd-MM-yyyy').format(widget.selectedDate));
-              getAllBooking();
             },
             onSubmit: (name, place, number, village, cash, pending,
                 secondaryMobile, isSplit, splitSeatNumber) async {
@@ -161,24 +250,30 @@ class _BookingDisplayWidgetState extends State<BookingDisplayWidget> {
                   mobileNumber: number,
                   pendingAmount: pending,
                   secondaryMobileNumber: secondaryMobile);
-              getAllBooking();
             },
             booking: bookingInfo,
           );
+        }else {
+          setState(() {
+            isSelected ? selected.remove(seatNo) : selected.add(seatNo);
+          });
+          widget.onChangeSeat(selected);
         }
       },
       child: Container(
-        width: Dimens.width_35,
-        height: Dimens.width_35,
+        width: boxSize,
+        height: boxSize,
         decoration: BoxDecoration(
-          color: isAlreadyBook ? primaryColor : Colors.grey[300],
+          color: isAlreadyBook ? primaryColor : isSelected
+              ? skyBlue
+              : Colors.grey[300],
           borderRadius: BorderRadius.circular(6),
         ),
         alignment: Alignment.center,
         child: Text(
           seatNo,
           style: TextStyle(
-            color: isAlreadyBook
+            color: isSelected || isAlreadyBook
                 ? Theme.of(context).textTheme.labelMedium!.color
                 : Theme.of(context).textTheme.labelSmall!.color,
             fontSize: Dimens.fontSize_12,
@@ -192,8 +287,13 @@ class _BookingDisplayWidgetState extends State<BookingDisplayWidget> {
   Widget doubleSeat(String id, List<String> seats) {
     bool isAlreadyBook = checkAlreadyBook(id);
     bool isSplit = checkIsSplit(id);
+    final isSelected = selected.contains(id);
     List splitSeatNo = getSplitSeatNo(id);
     Booking? bookingInfo = getBookingInfo(id);
+    double totalWidth =
+        ((MediaQuery.of(context).size.width - Dimens.dimen_200) / 3) -
+            Dimens.width_50;
+    double boxSize = (totalWidth - Dimens.dimen_20) / 7;
     return GestureDetector(
       onTap: () {
         var bookingStore = getBookingStore(context);
@@ -209,7 +309,6 @@ class _BookingDisplayWidgetState extends State<BookingDisplayWidget> {
                       ? splitSeatNumber
                       : id,
                   date: DateFormat('dd-MM-yyyy').format(widget.selectedDate));
-              getAllBooking();
             },
             onSubmit: (name, place, number, village, cash, amount,
                 secondaryNumber, isSplit, splitSeatNumber) async {
@@ -248,18 +347,22 @@ class _BookingDisplayWidgetState extends State<BookingDisplayWidget> {
                   isSplit: isSplit ?? false,
                 );
               }
-              getAllBooking();
             },
             booking: bookingInfo,
             isSplitOption: isSplit,
             seatNo: id,
             selectedSplitSeatNo: splitSeatNo.isEmpty ? null : splitSeatNo.first,
           );
+        }else {
+          setState(() {
+            isSelected ? selected.remove(id) : selected.add(id);
+          });
+          widget.onChangeSeat(selected);
         }
       },
       child: Container(
-        width: Dimens.width_70,
-        height: Dimens.width_35,
+        width: boxSize * 1.75,
+        height: boxSize,
         decoration: BoxDecoration(
           color: Colors.transparent,
           borderRadius: BorderRadius.circular(8),
@@ -273,7 +376,7 @@ class _BookingDisplayWidgetState extends State<BookingDisplayWidget> {
                 height: double.infinity,
                 decoration: BoxDecoration(
                     color: getSelectedBoxColor(isSplit, splitSeatNo,
-                        isAlreadyBook, seats[0].toString()),
+                        isAlreadyBook,isSelected, seats[0].toString()),
                     borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(8),
                         bottomLeft: Radius.circular(8))),
@@ -282,7 +385,7 @@ class _BookingDisplayWidgetState extends State<BookingDisplayWidget> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: getSelectedTextColor(isSplit, splitSeatNo,
-                          isAlreadyBook, seats[0].toString()),
+                          isAlreadyBook,isSelected,seats[0].toString()),
                       fontSize: Dimens.fontSize_12,
                       fontFamily: Fonts.medium),
                 ),
@@ -294,7 +397,7 @@ class _BookingDisplayWidgetState extends State<BookingDisplayWidget> {
                 height: double.infinity,
                 decoration: BoxDecoration(
                     color: getSelectedBoxColor(isSplit, splitSeatNo,
-                        isAlreadyBook, seats[1].toString()),
+                        isAlreadyBook,isSelected, seats[1].toString()),
                     borderRadius: BorderRadius.only(
                         topRight: Radius.circular(8),
                         bottomRight: Radius.circular(8))),
@@ -303,7 +406,7 @@ class _BookingDisplayWidgetState extends State<BookingDisplayWidget> {
                   textAlign: TextAlign.end,
                   style: TextStyle(
                       color: getSelectedTextColor(isSplit, splitSeatNo,
-                          isAlreadyBook, seats[1].toString()),
+                          isAlreadyBook,isSelected, seats[1].toString()),
                       fontSize: Dimens.fontSize_12,
                       fontFamily: Fonts.medium),
                 ),
@@ -324,6 +427,7 @@ class _BookingDisplayWidgetState extends State<BookingDisplayWidget> {
     required int doubleUpper2,
   }) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(
           children: [
@@ -334,7 +438,6 @@ class _BookingDisplayWidgetState extends State<BookingDisplayWidget> {
             singleSeat(single2.toString()),
           ],
         ),
-        SizedBox(width: Dimens.width_40),
         Row(
           children: [
             doubleSeat('$doubleLower1-$doubleLower2',
@@ -351,7 +454,7 @@ class _BookingDisplayWidgetState extends State<BookingDisplayWidget> {
   }
 
   Color? getSelectedBoxColor(
-      bool isSplit, List splitSeatNo, bool isAlreadySelected, String seat) {
+      bool isSplit, List splitSeatNo, bool isAlreadySelected,bool isSelected, String seat) {
     if (isSplit) {
       if (splitSeatNo.contains(seat)) {
         return primaryColor;
@@ -361,6 +464,8 @@ class _BookingDisplayWidgetState extends State<BookingDisplayWidget> {
     } else {
       if (isAlreadySelected) {
         return primaryColor;
+      }else if (isSelected) {
+        return skyBlue;
       } else {
         return Colors.grey[300];
       }
@@ -368,7 +473,7 @@ class _BookingDisplayWidgetState extends State<BookingDisplayWidget> {
   }
 
   Color? getSelectedTextColor(
-      bool isSplit, List splitSeatNo, bool isAlreadySelected, String seat) {
+      bool isSplit, List splitSeatNo, bool isAlreadySelected,bool isSelected, String seat) {
     if (isSplit) {
       if (splitSeatNo.contains(seat)) {
         return Theme.of(context).textTheme.labelMedium!.color;
@@ -377,6 +482,8 @@ class _BookingDisplayWidgetState extends State<BookingDisplayWidget> {
       }
     } else {
       if (isAlreadySelected) {
+        return Theme.of(context).textTheme.labelMedium!.color;
+      } else if (isSelected) {
         return Theme.of(context).textTheme.labelMedium!.color;
       } else {
         return Theme.of(context).textTheme.labelSmall!.color;
@@ -454,4 +561,21 @@ class _BookingDisplayWidgetState extends State<BookingDisplayWidget> {
       }
     }).toList();
   }
+
+  Stream<List<Booking>> streamBookingSeat(String busNumber, String date) async* {
+    final supabase = Supabase.instance.client;
+
+    final stream = supabase
+        .from('bus_bookings')
+        .stream(primaryKey: ['id']) // assuming 'id' is your primary key
+        .eq('bus_number', busNumber);
+
+
+    await for (final response in stream) {
+      List<Booking> bookings = response.map((item) => Booking.fromJson(item)).toList();
+      bookings = bookings.where((booking) => booking.date == date).toList();
+      yield bookings;
+    }
+  }
+
 }

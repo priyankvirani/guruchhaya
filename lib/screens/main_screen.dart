@@ -216,7 +216,7 @@ class _MainScreenState extends State<MainScreen> {
                         topLeft: Radius.circular(8),
                         bottomLeft: Radius.circular(8))),
                 child: Text(
-                  '${seats[0]}',
+                  seats[0],
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: getSelectedTextColor(isSplit, splitSeatNo,
@@ -237,7 +237,7 @@ class _MainScreenState extends State<MainScreen> {
                         topRight: Radius.circular(8),
                         bottomRight: Radius.circular(8))),
                 child: Text(
-                  '${seats[1]}',
+                  seats[1],
                   textAlign: TextAlign.end,
                   style: TextStyle(
                       color: getSelectedTextColor(isSplit, splitSeatNo,

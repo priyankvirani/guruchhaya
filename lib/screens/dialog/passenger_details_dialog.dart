@@ -34,9 +34,10 @@ class PassengerDetailsDialog extends StatefulWidget {
   bool? isSplitOption;
   String? seatNo;
   String? selectedSplitSeatNo;
+  List<Booking> bookingList;
 
   PassengerDetailsDialog(
-      this.onTap, this.booking, this.onCancel, this.isSplitOption, this.seatNo,this.selectedSplitSeatNo);
+      this.onTap, this.booking, this.onCancel, this.isSplitOption, this.seatNo,this.selectedSplitSeatNo,this.bookingList);
 
   @override
   State<PassengerDetailsDialog> createState() => _PassengerDetailsDialogState();
@@ -200,7 +201,7 @@ class _PassengerDetailsDialogState extends State<PassengerDetailsDialog> {
                                                 setState(() {
                                                   selectedSeat = seat.split("-").first;
                                                 });
-                                                Booking? booking = bookingStore.bookingList.where((b) => b.seatNumber == selectedSeat).firstOrNull;
+                                                Booking? booking = widget.bookingList.where((b) => b.seatNumber == selectedSeat).firstOrNull;
                                                 fillExistingDetails(booking);
                                               },
                                               child: Container(
@@ -242,7 +243,7 @@ class _PassengerDetailsDialogState extends State<PassengerDetailsDialog> {
                                                 setState(() {
                                                   selectedSeat = seat.split("-").last;
                                                 });
-                                                Booking? booking = bookingStore.bookingList.where((b) => b.seatNumber == selectedSeat).firstOrNull;
+                                                Booking? booking = widget.bookingList.where((b) => b.seatNumber == selectedSeat).firstOrNull;
                                                 fillExistingDetails(booking);
                                               },
                                               child: Container(

@@ -57,12 +57,10 @@ class _MainScreenState extends State<MainScreen> {
           AppDialog.passengerDetailsDialog(
             context,
             onCancel: (bool? isSplit, String? splitSeatNumber) async {
-              await bookingStore.deleteBooking(
-                  busNumber: bookingStore.selectedBusNumber,
-                  seatNumber: seatNo.toString(),
-                  date: DateFormat('dd-MM-yyyy').format(selectedDate));
+              await bookingStore.deleteBooking(id: bookingInfo!.id!);
               getAllBookedSeat();
             },
+            bookingList: bookingStore.bookingList,
             onSubmit: (name, place, number, village, cash, pending,
                 secondaryMobile, isSplit, splitSeatNumber) async {
               await bookingStore.updateBooking(
@@ -126,33 +124,26 @@ class _MainScreenState extends State<MainScreen> {
         if (isAlreadyBook) {
           AppDialog.passengerDetailsDialog(
             context,
+            bookingList: bookingStore.bookingList,
             onCancel: (bool? isSplit, String? splitSeatNumber) async {
-              await bookingStore.deleteBooking(
-                  busNumber: bookingStore.selectedBusNumber,
-                  seatNumber: ((isSplit ?? false) &&
-                          splitSeatNumber != null &&
-                          splitSeatNumber.isNotEmpty)
-                      ? splitSeatNumber
-                      : id,
-                  date: DateFormat('dd-MM-yyyy').format(selectedDate));
+              await bookingStore.deleteBooking(id: bookingInfo!.id!);
               getAllBookedSeat();
             },
             onSubmit: (name, place, number, village, cash, amount,
                 secondaryNumber, isSplit, splitSeatNumber) async {
               Booking? booking;
-              if(isSplit ?? false){
-                 booking = bookingStore.bookingList
+              if (isSplit ?? false) {
+                booking = bookingStore.bookingList
                     .where((b) => b.seatNumber == splitSeatNumber)
                     .firstOrNull;
-              }else{
-                 booking = bookingStore.bookingList
+              } else {
+                booking = bookingStore.bookingList
                     .where((b) => b.seatNumber == id)
                     .firstOrNull;
               }
-              if(booking == null && splitSeatNumber != null){
+              if (booking == null && splitSeatNumber != null) {
                 await bookingStore.bookSeat(
-                  busNumber:
-                  bookingStore.selectedBusNumber,
+                  busNumber: bookingStore.selectedBusNumber,
                   seatNumber: splitSeatNumber,
                   fullName: name,
                   place: place,
@@ -164,11 +155,11 @@ class _MainScreenState extends State<MainScreen> {
                   isSplit: true,
                   date: DateFormat("dd-MM-yyyy").format(selectedDate),
                 );
-              }else{
+              } else {
                 await bookingStore.updateBooking(
                   id: ((isSplit ?? false) &&
-                      splitSeatNumber != null &&
-                      splitSeatNumber.isNotEmpty)
+                          splitSeatNumber != null &&
+                          splitSeatNumber.isNotEmpty)
                       ? booking!.id!
                       : bookingInfo!.id!,
                   fullName: name,
@@ -375,10 +366,13 @@ class _MainScreenState extends State<MainScreen> {
                                     Icons.refresh,
                                   ),
                                 ),
-                                SizedBox(width: Dimens.width_20,),
+                                SizedBox(
+                                  width: Dimens.width_20,
+                                ),
                                 InkWell(
                                   onTap: () {
-                                    NavigationService.navigateTo(Routes.setting);
+                                    NavigationService.navigateTo(
+                                        Routes.setting);
                                   },
                                   child: Icon(
                                     Icons.settings,
@@ -397,8 +391,7 @@ class _MainScreenState extends State<MainScreen> {
                               showDatePicker(
                                 context: context,
                                 initialDate: selectedDate,
-                                firstDate:
-                                    DateTime.now().subtract(Duration(days: 14)),
+                                firstDate: DateTime(2000),
                                 lastDate:
                                     DateTime.now().add(Duration(days: 30)),
                                 builder: (context, child) {
@@ -729,6 +722,7 @@ class _MainScreenState extends State<MainScreen> {
                                     }
                                     AppDialog.passengerDetailsDialog(
                                       context,
+                                      bookingList: [],
                                       isSplitOption: isSplitOption,
                                       seatNo: seatNo,
                                       onSubmit: (name,

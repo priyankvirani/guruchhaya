@@ -1,15 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:guruchaya/helper/app_dialog.dart';
 import 'package:guruchaya/helper/dimens.dart';
 import 'package:guruchaya/helper/navigation.dart';
-import 'package:guruchaya/helper/routes.dart';
+import 'package:guruchaya/model/booking.dart';
 import 'package:guruchaya/provider/booking_provider.dart';
 import 'package:guruchaya/widgets/app_textfield.dart';
 import 'package:guruchaya/widgets/booking_display.dart';
 import 'package:guruchaya/widgets/loading.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../helper/colors.dart';
 import '../helper/responsive.dart';
 import '../helper/snackbar.dart';
@@ -33,6 +35,34 @@ class _AllBusBookingScreenState extends State<AllBusBookingScreen> {
 
   Map<String, Set<String>> seatMapList = {};
 
+  Timer? _pingTimer;
+
+  Stream<List<Booking>>? _bookingStream;
+
+  void _initStream() {
+    setState(() {
+      final stream = Supabase.instance.client
+          .from('bus_bookings')
+          .stream(primaryKey: ['id']).eq(
+              'date', DateFormat('dd-MM-yyyy').format(selectedDate!));
+      print("_bookingStream_bookingStream_bookingStream");
+      _bookingStream = stream.map((response) =>
+          response.map((item) => Booking.fromJson(item)).toList());
+    });
+  }
+
+  void _startPingTimer() {
+    _pingTimer = Timer.periodic(const Duration(minutes: 15), (timer) {
+      _initStream();
+    });
+  }
+
+  @override
+  void dispose() {
+    _pingTimer?.cancel();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -45,6 +75,8 @@ class _AllBusBookingScreenState extends State<AllBusBookingScreen> {
             .map((item) => item.toString())
             .toList();
       });
+      _initStream();
+      _startPingTimer();
     });
   }
 
@@ -85,12 +117,22 @@ class _AllBusBookingScreenState extends State<AllBusBookingScreen> {
                             child: SizedBox(),
                           ),
                           InkWell(
+                            onTap: () async {
+                              _initStream();
+                            },
+                            child: Icon(
+                              Icons.refresh,
+                            ),
+                          ),
+                          SizedBox(
+                            width: Dimens.width_20,
+                          ),
+                          InkWell(
                             onTap: () {
                               showDatePicker(
                                 context: context,
                                 initialDate: selectedDate,
-                                firstDate: DateTime.now()
-                                    .subtract(Duration(days: 14)),
+                                firstDate: DateTime(2000),
                                 lastDate:
                                     DateTime.now().add(Duration(days: 30)),
                                 builder: (context, child) {
@@ -162,11 +204,9 @@ class _AllBusBookingScreenState extends State<AllBusBookingScreen> {
                                 AppDialog.selectBusNumbersDialog(context,
                                     selectedNumber: selectedItems,
                                     onSubmit: (val) {
-                                  if (val != null) {
-                                    setState(() {
-                                      selectedItems = val;
-                                    });
-                                  }
+                                  setState(() {
+                                    selectedItems = val;
+                                  });
                                 });
                               },
                               controller: TextEditingController(
@@ -202,25 +242,37 @@ class _AllBusBookingScreenState extends State<AllBusBookingScreen> {
                     ),
                     if (selectedDate != null)
                       Expanded(
-                        child: GridView.count(
-                          crossAxisCount: 3, // or 3, depending on layout
-                          crossAxisSpacing: Dimens.width_20,
-                          mainAxisSpacing: Dimens.width_20,
-                          shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
-                          children: selectedItems.map((item) {
-                            return BookingDisplayWidget(
-                              busNumber: item,
-                              selectedDate: selectedDate!,
-                              onChangeSeat: (seatList) {
-                                setState(() {
-                                  seatMapList[item] = seatList;
-                                });
-                                seatMapList.removeWhere((key, value) => value.isEmpty);
-                              },
-                            );
-                          }).toList(),
-                        ),
+                        child: _bookingStream == null
+                            ? SizedBox()
+                            : StreamBuilder<List<Booking>>(
+                                stream: _bookingStream,
+                                builder: (context, snapshot) {
+                                  List<Booking> bookings = snapshot.data ?? [];
+                                  return GridView.count(
+                                    crossAxisCount:
+                                        3, // or 3, depending on layout
+                                    crossAxisSpacing: Dimens.width_20,
+                                    mainAxisSpacing: Dimens.width_20,
+                                    shrinkWrap: true,
+                                    children: selectedItems.map((item) {
+                                      return BookingDisplayWidget(
+                                        onDelete: (){
+                                          _initStream();
+                                        },
+                                        busNumber: item,
+                                        selectedDate: selectedDate!,
+                                        onChangeSeat: (seatList) {
+                                          setState(() {
+                                            seatMapList[item] = seatList;
+                                          });
+                                          seatMapList.removeWhere(
+                                              (key, value) => value.isEmpty);
+                                        },
+                                        bookingList: bookings,
+                                      );
+                                    }).toList(),
+                                  );
+                                }),
                       ),
                     SizedBox(
                       height: Dimens.height_10,
@@ -245,7 +297,7 @@ class _AllBusBookingScreenState extends State<AllBusBookingScreen> {
                           Languages.of(context)!.booked,
                           style: TextStyle(
                             color:
-                            Theme.of(context).textTheme.labelSmall!.color,
+                                Theme.of(context).textTheme.labelSmall!.color,
                             fontSize: Dimens.fontSize_12,
                           ),
                         ),
@@ -267,7 +319,7 @@ class _AllBusBookingScreenState extends State<AllBusBookingScreen> {
                           Languages.of(context)!.available,
                           style: TextStyle(
                             color:
-                            Theme.of(context).textTheme.labelSmall!.color,
+                                Theme.of(context).textTheme.labelSmall!.color,
                             fontSize: Dimens.fontSize_12,
                           ),
                         ),
@@ -281,20 +333,22 @@ class _AllBusBookingScreenState extends State<AllBusBookingScreen> {
                         label: Languages.of(context)!.bookTicket,
                         onPressed: () {
                           if (seatMapList.isEmpty) {
-                            AlertSnackBar.error(Languages.of(context)!
-                                .pleaseSelectSeat);
+                            AlertSnackBar.error(
+                                Languages.of(context)!.pleaseSelectSeat);
                           } else {
                             String busNumber = seatMapList.keys.last;
                             Set<String> selected = seatMapList[busNumber]!;
 
                             String? seatNo;
                             bool isSplitOption = false;
-                            if (selected.length == 1 && selected.first.contains("-")) {
+                            if (selected.length == 1 &&
+                                selected.first.contains("-")) {
                               isSplitOption = true;
                               seatNo = selected.first;
                             }
                             AppDialog.passengerDetailsDialog(
                               context,
+                              bookingList: [],
                               isSplitOption: isSplitOption,
                               seatNo: seatNo,
                               onSubmit: (name,

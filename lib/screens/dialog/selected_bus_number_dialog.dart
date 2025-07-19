@@ -40,7 +40,6 @@ class _SelectedBusNumberDialogState extends State<SelectedBusNumberDialog> {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       setState(() {
         selectedNumber = widget.selectedNumber;
-        print("selectedNumber : $selectedNumber");
       });
     });
   }
@@ -107,9 +106,6 @@ class _SelectedBusNumberDialogState extends State<SelectedBusNumberDialog> {
                                 if (selectedNumber.contains(bookingStore.busNumberList[index])) {
                                   selectedNumber.remove(bookingStore.busNumberList[index]);
                                 } else {
-                                  if (selectedNumber.length >= 3) {
-                                    selectedNumber.removeAt(0);
-                                  }
                                   selectedNumber.add(bookingStore.busNumberList[index]);
                                 }
                               });

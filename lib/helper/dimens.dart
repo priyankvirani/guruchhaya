@@ -233,6 +233,7 @@ class Dimens {
   static double dimen_150 = 150;
   static double dimen_200 = 200;
   static double dimen_220 = 220;
+  static double dimen_260 = 260;
   static double dimen_400 = 400;
   static double dimen_500 = 500;
   static double dimen_550 = 550;

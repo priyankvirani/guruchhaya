@@ -141,7 +141,7 @@ class LanguageGu extends Languages {
   String get split => "વિભાજન";
 
   @override
-  String get changeBusNumberForAllBooking => "બધી બુકિંગ માટે બસ નંબર બદલવો છે?";
+  String get changeBusNumberForAllBooking => "બસ નંબર બદલો";
 
   @override
   String get changeBusNumber => "બસ નંબર બદલો?";
@@ -178,6 +178,9 @@ class LanguageGu extends Languages {
 
   @override
   String get allBusBooking => "તમામ બસના બુકિંગ";
+
+  @override
+  String get totalIncome => "કુલ આવક";
 
 
 }

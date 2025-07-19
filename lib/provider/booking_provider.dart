@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:guruchaya/helper/global.dart';
 import 'package:guruchaya/helper/navigation.dart';
 import 'package:guruchaya/helper/shared_preference.dart';
 import 'package:guruchaya/helper/snackbar.dart';
@@ -50,16 +51,16 @@ class BookingController extends ChangeNotifier {
     final supabase = Supabase.instance.client;
 
     await supabase.from('bus_bookings').insert({
-      'cash': cash,
+      'cash': Global.parseLocalizedNumber(cash),
       'bus_number': busNumber,
       'seat_number': seatNumber,
       'date': date,
       'full_name': fullName,
       'place': place,
-      'mobile_number': mobileNumber,
+      'mobile_number': Global.parseLocalizedNumber(mobileNumber),
       'village_name': villageName,
-      'pending': pending,
-      'secondary_mobile': secondaryNumber,
+      'pending': Global.parseLocalizedNumber(pending),
+      'secondary_mobile': Global.parseLocalizedNumber(secondaryNumber),
       'is_split': isSplit
     }).then((val) {
       changeLoadingStatus(false);
@@ -203,33 +204,21 @@ class BookingController extends ChangeNotifier {
   }) async {
     changeLoadingStatus(true);
     final updates = {
-      'cash': cash,
+      'cash': Global.parseLocalizedNumber(cash),
       'full_name': fullName,
       'place': place,
-      'mobile_number': mobileNumber,
-      'secondary_mobile': secondaryMobileNumber,
+      'mobile_number': Global.parseLocalizedNumber(mobileNumber),
+      'secondary_mobile': Global.parseLocalizedNumber(secondaryMobileNumber),
       'village_name': villageName,
-      'pending': pendingAmount
+      'pending': Global.parseLocalizedNumber(pendingAmount)
     };
-    print("updateBooking : ${updates}");
-    final supabase = Supabase.instance.client;
-    await supabase.from('bus_bookings').update(updates).eq('id', id);
+    await Supabase.instance.client.from('bus_bookings').update(updates).eq('id', id);
     changeLoadingStatus(false);
   }
 
-  Future<void> deleteBooking({
-    required String busNumber,
-    required String seatNumber,
-    required String date,
-  }) async {
+  Future<void> deleteBooking({required String id}) async {
     changeLoadingStatus(true);
-    final supabase = Supabase.instance.client;
-    await supabase
-        .from('bus_bookings')
-        .delete()
-        .eq('bus_number', busNumber)
-        .eq('seat_number', seatNumber)
-        .eq('date', date);
+    await Supabase.instance.client.from('bus_bookings').delete().eq('id', id);
     changeLoadingStatus(false);
   }
 
@@ -282,17 +271,17 @@ class BookingController extends ChangeNotifier {
   }) async {
     changeLoadingStatus(true);
     final supabase = Supabase.instance.client;
-    if(seatNumber != null){
+    if (seatNumber != null) {
       await supabase
           .from('bus_bookings')
-          .update({'bus_number':newBusNumber})
+          .update({'bus_number': newBusNumber})
           .eq('bus_number', oldBusNumber)
           .eq('seat_number', seatNumber)
           .eq('date', date);
-    }else{
+    } else {
       await supabase
           .from('bus_bookings')
-          .update({'bus_number':newBusNumber})
+          .update({'bus_number': newBusNumber})
           .eq('bus_number', oldBusNumber)
           .eq('date', date);
     }
@@ -300,4 +289,27 @@ class BookingController extends ChangeNotifier {
     changeLoadingStatus(false);
   }
 
+  Future<List<Booking>> getDateWiseData(
+      DateTime fromDate, DateTime toDate,String busNumber) async {
+    final supabase = Supabase.instance.client;
+    changeLoadingStatus(true);
+    final String from = fromDate.toIso8601String();
+    final String to = toDate.toIso8601String();
+
+    final response = await supabase
+        .from('bus_bookings')
+        .select()
+        .gte('created_at', from)
+        .lte('created_at', to);
+    changeLoadingStatus(false);
+    List<Booking> bookings = [];
+    for (var item in response) {
+      Booking booking = Booking.fromJson(item);
+      bookings.add(booking);
+    }
+    List<Booking> bookingList = bookings
+        .where((booking) => booking.busNumber == busNumber)
+        .toList();
+    return bookingList;
+  }
 }

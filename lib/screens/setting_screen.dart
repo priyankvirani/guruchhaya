@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:guruchaya/helper/app_dialog.dart';
 import 'package:guruchaya/helper/colors.dart';
 import 'package:guruchaya/helper/dimens.dart';
+import 'package:guruchaya/helper/navigation.dart';
+import 'package:guruchaya/helper/routes.dart';
 import 'package:guruchaya/language/language_data.dart';
 import 'package:guruchaya/language/localization/language/languages.dart';
 import 'package:guruchaya/provider/booking_provider.dart';
@@ -73,6 +75,17 @@ class _SettingScreenState extends State<SettingScreen> {
                               changeLanguage(context, val.languageCode);
                               languageLoad();
                             });
+                          },
+                        ),
+                        SizedBox(
+                          height: Dimens.height_20,
+                        ),
+                        settingTile(
+                          title: Languages.of(context)!.totalIncome,
+                          image: Images.money,
+                          isLanguage: true,
+                          onPressed: () {
+                            NavigationService.navigateTo(Routes.totalIncome);
                           },
                         ),
                       ],

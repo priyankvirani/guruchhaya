@@ -34,11 +34,11 @@ class AppDialog {
   }
 
   static passengerDetailsDialog(BuildContext context,
-      {bool isSplitOption = false,String? seatNo,String? selectedSplitSeatNo,Booking? booking,required Function(String name, String place, String number, String village, String cash, String pending,String secondaryNumber,bool? isSplit, String? splitSeatNumber) onSubmit,Function(bool? isSplit, String? splitSeatNumber)? onCancel}) {
+      {bool isSplitOption = false,String? seatNo,String? selectedSplitSeatNo,Booking? booking,required Function(String name, String place, String number, String village, String cash, String pending,String secondaryNumber,bool? isSplit, String? splitSeatNumber) onSubmit,Function(bool? isSplit, String? splitSeatNumber)? onCancel,required List<Booking> bookingList}) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return PassengerDetailsDialog(onSubmit,booking,onCancel,isSplitOption,seatNo,selectedSplitSeatNo);
+        return PassengerDetailsDialog(onSubmit,booking,onCancel,isSplitOption,seatNo,selectedSplitSeatNo,bookingList);
       },
     );
   }

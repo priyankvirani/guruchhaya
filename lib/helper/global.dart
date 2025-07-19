@@ -16,6 +16,32 @@ import '../provider/booking_provider.dart';
 
 
 class Global {
+
+  static bool containsGujaratiDigits(String text) {
+    final gujaratiDigitRegex = RegExp(r'[૦-૯]');
+    return gujaratiDigitRegex.hasMatch(text);
+  }
+
+  static int parseLocalizedNumber(String input) {
+    if (containsGujaratiDigits(input)) {
+      return gujaratiToEnglishInt(input);
+    } else {
+      return int.tryParse(input) ?? 0;
+    }
+  }
+
+  static int gujaratiToEnglishInt(String gujaratiNumber) {
+    const gujaratiDigits = ['૦', '૧', '૨', '૩', '૪', '૫', '૬', '૭', '૮', '૯'];
+    const englishDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+
+    String englishNumber = gujaratiNumber.split('').map((char) {
+      int index = gujaratiDigits.indexOf(char);
+      return index != -1 ? englishDigits[index] : char;
+    }).join('');
+
+    return int.tryParse(englishNumber) ?? 0;
+  }
+
   static List<String> seatLayout = [
     '1',
     '2',

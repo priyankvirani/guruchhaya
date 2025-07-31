@@ -182,4 +182,11 @@ class LanguageHi extends Languages {
   @override
   String get totalIncome => "कुल आय";
 
+  @override
+  String get income => "आय";
+
+  @override
+  String get busNumber => "बस नंबर";
+
+
 }

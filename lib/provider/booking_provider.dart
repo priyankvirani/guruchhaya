@@ -290,7 +290,7 @@ class BookingController extends ChangeNotifier {
   }
 
   Future<List<Booking>> getDateWiseData(
-      DateTime fromDate, DateTime toDate,String busNumber) async {
+      DateTime fromDate, DateTime toDate) async {
     final supabase = Supabase.instance.client;
     changeLoadingStatus(true);
     final String from = fromDate.toIso8601String();
@@ -307,9 +307,6 @@ class BookingController extends ChangeNotifier {
       Booking booking = Booking.fromJson(item);
       bookings.add(booking);
     }
-    List<Booking> bookingList = bookings
-        .where((booking) => booking.busNumber == busNumber)
-        .toList();
-    return bookingList;
+    return bookings;
   }
 }

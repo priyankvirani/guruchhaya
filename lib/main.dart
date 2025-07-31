@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:guruchaya/helper/global.dart';
 import 'package:guruchaya/provider/auth_provider.dart';
 import 'package:guruchaya/provider/booking_provider.dart';
 import 'package:guruchaya/provider/theme_provider.dart';

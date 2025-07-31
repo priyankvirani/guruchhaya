@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:guruchaya/helper/colors.dart';
@@ -56,27 +57,113 @@ class _AllBookingScreenState extends State<AllBookingScreen> {
                           InkWell(
                             onTap: () async {
                               Map<String, dynamic>? data = await Preferences.getDriverDetails(widget.busNumber);
-                              if(Platform.isWindows){
-                                NavigationService.navigateTo(Routes.pdfWindowsView,
-                                    arguments: {
-                                      'busNumber': widget.busNumber,
-                                      'date': widget.date,
-                                      'driver': data?['driverName'] ?? '',
-                                      'conductor': data?['conductorName'] ?? '',
-                                      'time': data?['time'] ?? '',
-                                      'to': data?['toVillageName'] ?? '',
-                                    });
-                              }else if(Platform.isAndroid || Platform.isIOS){
-                                NavigationService.navigateTo(Routes.pdfView,
-                                    arguments: {
-                                      'busNumber': widget.busNumber,
-                                      'date': widget.date,
-                                      'driver': data?['driverName'] ?? '',
-                                      'conductor': data?['conductorName'] ?? '',
-                                      'time': data?['time'] ?? '',
-                                      'to': data?['toVillageName'] ?? '',
-                                    });
+
+                              if(kIsWeb){
+
                               }else{
+                                if(Platform.isWindows){
+                                  NavigationService.navigateTo(Routes.pdfWindowsView,
+                                      arguments: {
+                                        'busNumber': widget.busNumber,
+                                        'date': widget.date,
+                                        'driver': data?['driverName'] ?? '',
+                                        'conductor': data?['conductorName'] ?? '',
+                                        'time': data?['time'] ?? '',
+                                        'to': data?['toVillageName'] ?? '',
+                                      });
+                                }else if(Platform.isAndroid || Platform.isIOS){
+                                  NavigationService.navigateTo(Routes.pdfView,
+                                      arguments: {
+                                        'busNumber': widget.busNumber,
+                                        'date': widget.date,
+                                        'driver': data?['driverName'] ?? '',
+                                        'conductor': data?['conductorName'] ?? '',
+                                        'time': data?['time'] ?? '',
+                                        'to': data?['toVillageName'] ?? '',
+                                      });
+                                }else{
+                                  bookingStore.changeLoadingStatus(true);
+                                  htmlContent = await Global.getHtmlContent(
+                                    date: widget.date,
+                                    busNumber: widget.busNumber,
+                                    scaleFactor: MediaQuery.of(context).textScaleFactor,
+                                    driver: data?['driverName'] ?? '',
+                                    conductor: data?['conductorName'] ?? '',
+                                    time: data?['time'] ?? '',
+                                    suratTo: data?['toVillageName'] ?? '',
+                                  );
+                                  bookingStore.changeLoadingStatus(false);
+
+                                  final tempDir = await getTemporaryDirectory();
+                                  final htmlFile = File('${tempDir.path}/preview.html');
+                                  await htmlFile.writeAsString(htmlContent);
+
+                                  final uri = Uri.file(htmlFile.path);
+                                  final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                  if (!launched) {
+                                    throw 'Could not launch HTML file.';
+                                  }
+                                }
+                              }
+
+
+
+                            },
+                            child: Image.asset(
+                              Images.view,
+                              height: Dimens.height_25,
+                            ),
+                          ),
+                          if(Platform.isAndroid || Platform.isIOS)
+                          Padding(
+                            padding:  EdgeInsets.only(left: Dimens.padding_20),
+                            child: InkWell(
+                              onTap: () async {
+                                Map<String, dynamic>? data = await Preferences.getDriverDetails(widget.busNumber);
+                                bookingStore.changeLoadingStatus(true);
+                                htmlContent = await Global.getHtmlContent(
+                                  date: widget.date,
+                                  busNumber: widget.busNumber,
+                                  scaleFactor: MediaQuery.of(context).textScaleFactor,
+                                  driver: data?['driverName'] ?? '',
+                                  conductor: data?['conductorName'] ?? '',
+                                  time: data?['time'] ?? '',
+                                  suratTo: data?['toVillageName'] ?? '',
+                                );
+                                bookingStore.changeLoadingStatus(false);
+                                if(Platform.isWindows){
+                                  final tempDir = await getTemporaryDirectory();
+                                  final htmlFile = File('${tempDir.path}/preview.html');
+                                  await htmlFile.writeAsString(htmlContent);
+
+                                  final uri = Uri.file(htmlFile.path);
+                                  final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                  if (!launched) {
+                                    throw 'Could not launch HTML file.';
+                                  }
+                                }else{
+
+                                  Global.downloadPDF(
+                                      htmlContent: htmlContent,
+                                      busNumber: widget.busNumber,
+                                      date: widget.date);
+                                }
+
+
+                              },
+                              child: Image.asset(
+                                Images.download,
+                                height: Dimens.height_20,
+                                color: primaryColor,
+                              ),
+                            ),
+                          ),
+                          if(Platform.isAndroid || Platform.isIOS)
+                          Padding(
+                            padding:  EdgeInsets.only(left: Dimens.padding_20),
+                            child: InkWell(
+                              onTap: () async {
+                                Map<String, dynamic>? data = await Preferences.getDriverDetails(widget.busNumber);
                                 bookingStore.changeLoadingStatus(true);
                                 htmlContent = await Global.getHtmlContent(
                                   date: widget.date,
@@ -89,104 +176,28 @@ class _AllBookingScreenState extends State<AllBookingScreen> {
                                 );
                                 bookingStore.changeLoadingStatus(false);
 
-                                final tempDir = await getTemporaryDirectory();
-                                final htmlFile = File('${tempDir.path}/preview.html');
-                                await htmlFile.writeAsString(htmlContent);
+                                if(Platform.isWindows){
+                                  final tempDir = await getTemporaryDirectory();
+                                  final htmlFile = File('${tempDir.path}/preview.html');
+                                  await htmlFile.writeAsString(htmlContent);
 
-                                final uri = Uri.file(htmlFile.path);
-                                final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
-                                if (!launched) {
-                                  throw 'Could not launch HTML file.';
+                                  final uri = Uri.file(htmlFile.path);
+                                  final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                  if (!launched) {
+                                    throw 'Could not launch HTML file.';
+                                  }
+                                }else{
+                                  Global.sharePDF(
+                                      htmlContent: htmlContent,
+                                      busNumber: widget.busNumber,
+                                      date: widget.date);
                                 }
-                              }
-                            },
-                            child: Image.asset(
-                              Images.view,
-                              height: Dimens.height_25,
-                            ),
-                          ),
-                          SizedBox(
-                            width: Dimens.dimen_20,
-                          ),
-                          InkWell(
-                            onTap: () async {
-                              Map<String, dynamic>? data = await Preferences.getDriverDetails(widget.busNumber);
-                              bookingStore.changeLoadingStatus(true);
-                              htmlContent = await Global.getHtmlContent(
-                                date: widget.date,
-                                busNumber: widget.busNumber,
-                                scaleFactor: MediaQuery.of(context).textScaleFactor,
-                                driver: data?['driverName'] ?? '',
-                                conductor: data?['conductorName'] ?? '',
-                                time: data?['time'] ?? '',
-                                suratTo: data?['toVillageName'] ?? '',
-                              );
-                              bookingStore.changeLoadingStatus(false);
-                              if(Platform.isWindows){
-                                final tempDir = await getTemporaryDirectory();
-                                final htmlFile = File('${tempDir.path}/preview.html');
-                                await htmlFile.writeAsString(htmlContent);
-
-                                final uri = Uri.file(htmlFile.path);
-                                final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
-                                if (!launched) {
-                                  throw 'Could not launch HTML file.';
-                                }
-                              }else{
-
-                                Global.downloadPDF(
-                                    htmlContent: htmlContent,
-                                    busNumber: widget.busNumber,
-                                    date: widget.date);
-                              }
-
-
-                            },
-                            child: Image.asset(
-                              Images.download,
-                              height: Dimens.height_20,
-                              color: primaryColor,
-                            ),
-                          ),
-                          SizedBox(
-                            width: Dimens.dimen_20,
-                          ),
-                          InkWell(
-                            onTap: () async {
-                              Map<String, dynamic>? data = await Preferences.getDriverDetails(widget.busNumber);
-                              bookingStore.changeLoadingStatus(true);
-                              htmlContent = await Global.getHtmlContent(
-                                date: widget.date,
-                                busNumber: widget.busNumber,
-                                scaleFactor: MediaQuery.of(context).textScaleFactor,
-                                driver: data?['driverName'] ?? '',
-                                conductor: data?['conductorName'] ?? '',
-                                time: data?['time'] ?? '',
-                                suratTo: data?['toVillageName'] ?? '',
-                              );
-                              bookingStore.changeLoadingStatus(false);
-
-                              if(Platform.isWindows){
-                                final tempDir = await getTemporaryDirectory();
-                                final htmlFile = File('${tempDir.path}/preview.html');
-                                await htmlFile.writeAsString(htmlContent);
-
-                                final uri = Uri.file(htmlFile.path);
-                                final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
-                                if (!launched) {
-                                  throw 'Could not launch HTML file.';
-                                }
-                              }else{
-                                Global.sharePDF(
-                                    htmlContent: htmlContent,
-                                    busNumber: widget.busNumber,
-                                    date: widget.date);
-                              }
-                            },
-                            child: Image.asset(
-                              Images.share,
-                              height: Dimens.height_20,
-                              color: skyBlue,
+                              },
+                              child: Image.asset(
+                                Images.share,
+                                height: Dimens.height_20,
+                                color: skyBlue,
+                              ),
                             ),
                           )
                         ],

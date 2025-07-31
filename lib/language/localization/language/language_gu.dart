@@ -182,5 +182,11 @@ class LanguageGu extends Languages {
   @override
   String get totalIncome => "કુલ આવક";
 
+  @override
+  String get income => "આવક";
+
+  @override
+  String get busNumber => "બસ નંબર";
+
 
 }

@@ -182,4 +182,10 @@ class LanguageEn extends Languages {
   @override
   String get totalIncome => "Total Income";
 
+  @override
+  String get income => "Income";
+
+  @override
+  String get busNumber => "Bus Number";
+
 }

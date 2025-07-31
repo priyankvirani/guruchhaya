@@ -7,16 +7,14 @@ import 'package:guruchaya/helper/navigation.dart';
 import 'package:guruchaya/helper/snackbar.dart';
 import 'package:guruchaya/helper/string.dart';
 import 'package:guruchaya/language/localization/language/languages.dart';
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import '../model/booking.dart';
 import '../provider/booking_provider.dart';
 
-
-
 class Global {
-
   static bool containsGujaratiDigits(String text) {
     final gujaratiDigitRegex = RegExp(r'[૦-૯]');
     return gujaratiDigitRegex.hasMatch(text);
@@ -210,7 +208,7 @@ class Global {
 
      th, td {
       border: 1px solid #000;
-      text-align: center;
+      text-align: left;
       padding: 3px 2px; 
       font-size: ${14 / scaleFactor}px;
       white-space: normal;
@@ -235,7 +233,7 @@ class Global {
     th:nth-child(8), td:nth-child(8) {   /* સીટ નંબર */
       width: 80px;
     }
-
+    
     th {
       background-color: #f2f2f2;
       font-weight: bold;
@@ -299,7 +297,7 @@ class Global {
     <!-- Info Line -->
     <div class="info-row">
       <span>તા. $date</span>
-      <span>સમય : ${time.isNotEmpty ? time :"___________________"}</span>
+      <span>સમય : ${time.isNotEmpty ? time : "___________________"}</span>
       <span>ગાડી નં. $busNumber</span>
       <span>સુરત થી  ${suratTo.isNotEmpty ? suratTo : "______________________________________________________"}</span>
     </div>
@@ -318,6 +316,7 @@ class Global {
           <th>ગામ</th>
         </tr>
         ${generateTableRows()}
+        
       </table>
     </div>
 
@@ -343,21 +342,6 @@ class Global {
   static String generateTableRows() {
     var bookingStore = getBookingStore(NavigationService.context);
     List<Booking> lists = bookingStore.bookingList;
-    // lists.sort((a, b) {
-    //   int seatA;
-    //   int seatB;
-    //   if (a.seatNumber!.contains('-')) {
-    //     seatA = int.parse(a.seatNumber!.split("-").first);
-    //   } else {
-    //     seatA = int.parse(a.seatNumber!);
-    //   }
-    //   if (b.seatNumber!.contains('-')) {
-    //     seatB = int.parse(b.seatNumber!.split("-").first);
-    //   } else {
-    //     seatB = int.parse(b.seatNumber!);
-    //   }
-    //   return seatA.compareTo(seatB);
-    // });
 
     double totalAmount = 0;
     double totalPendingAmount = 0;
@@ -435,22 +419,20 @@ class Global {
           mobileNumber = '$mobileNumber / ${booking.secondaryMobileNumber}';
         }
       }
-      if((booking.cash ?? "0").contains("<br>")){
+      if ((booking.cash ?? "0").contains("<br>")) {
         totalAmount += double.parse(booking.cash!.split('<br>').first);
         totalAmount += double.parse(booking.cash!.split('<br>').last);
-      }else{
+      } else {
         totalAmount += double.parse(booking.cash ?? "0");
       }
 
-      if((booking.pending ?? "0").contains("<br>")){
-        totalPendingAmount += double.parse(booking.pending!.split('<br>').first);
+      if ((booking.pending ?? "0").contains("<br>")) {
+        totalPendingAmount +=
+            double.parse(booking.pending!.split('<br>').first);
         totalPendingAmount += double.parse(booking.pending!.split('<br>').last);
-      }else{
+      } else {
         totalPendingAmount += double.parse(booking.pending ?? "0");
       }
-
-
-
 
       if (seat == "Total") {
         rows += '''
@@ -480,7 +462,6 @@ class Global {
     ''';
       }
     }
-
     return rows;
   }
 
@@ -523,8 +504,6 @@ class Global {
     );
 
     AlertSnackBar.success("✅ PDF saved to: ${filePath.path}");
-
-
   }
 
   static Future<void> requestPermission() async {
@@ -533,6 +512,381 @@ class Global {
     } else {
       // Show error or request again
     }
+  }
+
+  static Future<String> getHtmlTotalIncome({
+    required Map<String, Map<String, int>> incomeData,
+    required double scaleFactor,
+  }) async {
+    final ByteData imageBytes = await rootBundle.load(Images.guruchhaya);
+    final Uint8List bytes = imageBytes.buffer.asUint8List();
+    final String base64Image = base64Encode(bytes);
+
+    String htmlContent = '''
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <title>${Languages.of(NavigationService.context)!.guruchhayaTravels}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kumar+One&display=swap" rel="stylesheet">
+
+  <style>
+    /* Prevent system font scaling */
+    html, body {
+      font-size: ${14 / scaleFactor}px;
+      -webkit-text-size-adjust: none !important;
+      -moz-text-size-adjust: none !important;
+      -ms-text-size-adjust: none !important;
+      text-size-adjust: none !important;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      background-color: #fff;
+      font-family: 'Noto Sans Gujarati', sans-serif;
+      width: 210mm; /* A4 width */
+      height: 297mm; /* A4 height */
+      box-sizing: border-box;
+    }
+
+    .outer-border {
+      border: 1px solid #000;
+      padding: 10px;
+    }
+
+    .header-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: ${10 / scaleFactor}px;
+      margin-bottom: 10px;
+    }
+
+    .title-driver-wrapper {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .fancy-title {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+
+    .right-info {
+      font-size: ${12 / scaleFactor}px;
+      text-align: right;
+      line-height: 1.8;
+    }
+
+    .info-row {
+      font-size: ${12 / scaleFactor}px;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin: 10px 0;
+      white-space: nowrap;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 700px;
+      table-layout: fixed;
+    }
+
+     th, td {
+      border: 1px solid #000;
+      text-align: center;
+      padding: 3px 2px; 
+      font-size: ${14 / scaleFactor}px;
+      white-space: normal;
+      word-break: break-word;  
+    }
+
+    th:nth-child(1), td:nth-child(1) {   
+      width: 90px;
+    }
+    th:nth-child(2), td:nth-child(1) {   
+      width: 70px;
+    }
+    th:nth-child(3), td:nth-child(3) {  
+      width: 90px;
+    }
+    th:nth-child(5), td:nth-child(5) {   /* બાકી */
+      width: 90px;
+    }
+   
+
+    th {
+      background-color: #f2f2f2;
+      font-weight: bold;
+    }
+
+    .total-section {
+      margin-top: 5px;
+      font-size: ${11 / scaleFactor}px;
+    }
+    
+.title-driver-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.logo {
+  max-height: ${70 / scaleFactor}px;
+  height: auto;
+  width: auto;
+  display: block;
+  margin-left: 20px; 
+}
+
+.right-info {
+  font-size: ${12 / scaleFactor}px;
+  text-align: left;
+  line-height: 1.8;
+  flex-shrink: 0;
+}
+    
+  </style>
+</head>
+<body>
+  <div class="outer-border">
+
+    <!-- Header -->
+    <div class="header-line">
+      <div>શ્રી બ્રહ્માણી માં</div>
+      <div>|| શ્રી ગણેશાય નમઃ ||</div>
+      <div>આઈ શ્રી ખોડિયાર માં</div>
+    </div>
+
+    <!-- Title + Driver Info -->
+  <div class="title-driver-wrapper">
+  <img
+    src="data:image/png;base64,$base64Image"
+    class="logo"
+    alt="Logo"
+  />
+</div>
+   
+    <!-- Table -->
+    <div class="table-wrapper">
+      <table>
+        <tr>
+          <th>તારીખ</th>
+          <th>ગાડી નંબર</th>
+          <th>ટોટલ</th>
+           <th>સહી</th>
+          <th>કુલ ટોટલ</th>
+          <th>જમા સહી</th>
+        </tr>
+        ${generateIncomeRows(incomeData)}
+      </table>
+    </div>
+
+  </div>
+</body>
+</html>
+''';
+    return htmlContent;
+  }
+
+  static String generateIncomeRows(Map<String, Map<String, int>> incomeData) {
+    final sortedDates = incomeData.keys.toList()
+      ..sort((a, b) => DateFormat('dd/MM/yyyy')
+          .parse(a)
+          .compareTo(DateFormat('dd/MM/yyyy').parse(b)));
+
+    String rows = '';
+
+    int totalAmount = 0;
+
+    for (int index = 0; index < sortedDates.length; index++) {
+      final date = sortedDates[index];
+      final busData = incomeData[date]!;
+      int val = 0;
+      busData.forEach((key, value) {
+        val += value;
+      });
+
+      rows += '''
+    <tr>
+      <td>$date</td>
+      <td>${getStringBusNumberList(busData)}</td>
+      <td>${getStringBusIncome(busData)}</td>
+      <td></td>
+      <td>${getThousandValue(val)}</td>
+      <td></td>
+    </tr>
+    ''';
+      totalAmount += val;
+    }
+
+    String displayTotal = '''<tr>
+    <td colspan="2" style="text-align: right; font-weight: bold;">કુલ રકમ</td>
+    <td colspan="4" style="font-weight: bold;">${getThousandValue(totalAmount)}</td>
+   
+  </tr>''';
+
+    rows += displayTotal;
+
+    return rows;
+  }
+
+  static getStringBusNumberList(Map<String, int> busData) {
+    String val = "";
+    busData.forEach((key, value) {
+      val += "$key<br>";
+    });
+    return val;
+  }
+
+  static getStringBusIncome(Map<String, int> busData) {
+    String val = "";
+    busData.forEach((key, value) {
+      val += "${getThousandValue(value)}<br>";
+    });
+    return val;
+  }
+
+  static getTotalIncomeFromData(Map<String, int> busData) {
+    int val = 0;
+    busData.forEach((key, value) {
+      val += value;
+    });
+    return getThousandValue(val);
+  }
+
+  static getThousandValue(int value) {
+    return NumberFormat.currency(
+      locale: 'en_IN',
+      symbol: '₹ ',
+      decimalDigits: 0,
+    ).format(value);
+  }
+
+  static Future<void> downloadIncomePDF(
+      {required String htmlContent,
+        required String date}) async {
+    await requestPermission();
+
+    Directory? dir;
+
+    if (Platform.isAndroid) {
+      dir = Directory('/storage/emulated/0/Download'); // Default Downloads path
+    } else if (Platform.isIOS) {
+      dir = await getApplicationDocumentsDirectory();
+    }
+
+    final filePath = await FlutterHtmlToPdf.convertFromHtmlContent(
+      htmlContent,
+      dir!.path,
+      "ગુરૂછાયા_આવક_$date",
+    );
+
+    AlertSnackBar.success("✅ PDF saved to: ${filePath.path}");
+  }
+
+  static Future<void> shareIncomePDF(
+      {required String htmlContent,
+        required String date}) async {
+    await requestPermission();
+
+    Directory? dir;
+
+    if (Platform.isAndroid) {
+      dir = Directory('/storage/emulated/0/Download'); // Default Downloads path
+    } else if (Platform.isIOS) {
+      dir = await getApplicationDocumentsDirectory();
+    }
+
+    final filePath = await FlutterHtmlToPdf.convertFromHtmlContent(
+      htmlContent,
+      dir!.path,
+      "ગુરૂછાયા_આવક_$date",
+    );
+    await Share.shareXFiles(
+      [XFile(filePath.path)],
+      text: 'ગુરૂછાયા',
+      subject: 'Date : $date',
+    );
+  }
+
+  static printTicket(){
+    String htmlContent = '''<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Bus Ticket</title>
+  <style>
+    @page {
+      size: 25cm 12.7cm;
+      margin: 0;
+    }
+
+    body {
+      margin: 0;
+      width: 25cm;
+      height: 12.7cm;
+      font-family: Arial, sans-serif;
+      font-size: 12pt;
+      position: relative;
+
+<!--      /* Fix the background image size */-->
+<!--      background-image: url('ticket-bg.jpeg');-->
+<!--      background-size: 20cm 10cm;-->
+<!--      background-repeat: no-repeat;-->
+<!--      background-position: top left;-->
+    }
+
+    .field {
+      position: absolute;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Left Ticket -->
+  <div class="field" style="top: 6.7cm; left: 4.8cm;">29/07/25</div>
+  <div class="field" style="top: 6.8cm; left: 11.4cm;">1234</div>
+  <div class="field" style="top: 7.7cm; left: 3.8cm;">રમેશભાઈ</div>
+  <div class="field" style="top: 8.7cm; left: 4.5cm;">10:30</div>
+  <div class="field" style="top: 8.8cm; left: 8.7cm;">10:30</div>
+  <div class="field" style="top: 8.8cm; left: 12.7cm;">પાલીતાણા</div>
+  <div class="field" style="top: 9.7cm; left: 4.1cm;">10-11</div>
+  <div class="field" style="top: 9.85cm; left: 14.7cm;">2</div>
+  <div class="field" style="top: 10.75cm; left: 4.2cm;">₹500</div>
+  <div class="field" style="top: 10.8cm; left: 11.6cm;">₹100</div>
+
+  <!-- Right Ticket -->
+  <div class="field" style="top: 6.7cm; left: 18.6cm;">29/07/25</div>
+  <div class="field" style="top: 6.8cm; left: 22cm;">1234</div>
+  <div class="field" style="top: 7.6cm; left: 18cm;">રમેશભાઈ</div>
+  <div class="field" style="top: 8.6cm; left: 18.3cm;">પાલીતાણા</div>
+  <div class="field" style="top: 9.7cm; left: 18.6cm;">10:30</div>
+  <div class="field" style="top: 9.7cm; left: 22cm;">10:30</div>
+  <div class="field" style="top: 10.7cm; left: 18.2cm;">10-11</div>
+  <div class="field" style="top: 10.7cm; left: 23.6cm;">2</div>
+  <div class="field" style="top: 11.7cm; left: 18.2cm;">₹500</div>
+  <div class="field" style="top: 11.7cm; left: 21.9cm;">₹100</div>
+
+</body>
+</html>
+''';
   }
 
 }

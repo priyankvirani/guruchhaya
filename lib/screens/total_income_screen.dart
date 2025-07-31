@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:guruchaya/helper/colors.dart';
 import 'package:guruchaya/helper/dimens.dart';
@@ -9,11 +12,12 @@ import 'package:guruchaya/widgets/app_textfield.dart';
 import 'package:guruchaya/widgets/appbar.dart';
 import 'package:guruchaya/widgets/loading.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../helper/global.dart';
 import '../helper/string.dart';
-import '../widgets/app_drop_down.dart';
 
 class TotalIncomeScreen extends StatefulWidget {
   @override
@@ -24,32 +28,34 @@ class _TotalIncomeScreenState extends State<TotalIncomeScreen> {
   DateTime startDate = DateTime(DateTime.now().year, DateTime.now().month, 1);
   DateTime endDate = DateTime(DateTime.now().year, DateTime.now().month + 1, 0);
 
-  int cash = 0;
-  int pending = 0;
-
   PickerDateRange? _selectedRange;
 
-  String selectedBusNumber = "";
+  List<Booking> bookingList = [];
 
+  String htmlContent = "";
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_){
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       setState(() {
-        selectedBusNumber = getBookingStore(context).busNumberList.first;
         _selectedRange = PickerDateRange(startDate, endDate);
       });
       initData();
     });
   }
 
-  initData(){
-    getBookingStore(context).getDateWiseData(startDate, endDate,selectedBusNumber).then((val){
-      List<Booking> bookingList = val;
-      cash = bookingList.fold(0, (sum, booking) => sum + Global.parseLocalizedNumber(booking.cash ?? "0"));
-      pending = bookingList.fold(0, (sum, booking) => sum + Global.parseLocalizedNumber(booking.pending ?? "0"));
+  initData() {
+    getBookingStore(context)
+        .getDateWiseData(startDate, endDate)
+        .then((val) async {
+      bookingList = val;
+      var grouped = groupBookings(bookingList);
+      htmlContent = await Global.getHtmlTotalIncome(
+        incomeData: grouped,
+        scaleFactor: MediaQuery.of(context).textScaleFactor,
+      );
       setState(() {});
     });
   }
@@ -60,6 +66,7 @@ class _TotalIncomeScreenState extends State<TotalIncomeScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Consumer<BookingController>(
         builder: (context, bookStore, snapshot) {
+          var grouped = groupBookings(bookingList);
           return Stack(
             children: [
               SafeArea(
@@ -76,6 +83,158 @@ class _TotalIncomeScreenState extends State<TotalIncomeScreen> {
                           padding: EdgeInsets.only(bottom: Dimens.padding_20),
                           child: BackAppBar(
                             title: Languages.of(context)!.totalIncome,
+                            actions: [
+                              if (Platform.isWindows)
+                                InkWell(
+                                  onTap: () async {
+                                    var grouped = groupBookings(bookingList);
+                                    bookStore.changeLoadingStatus(true);
+                                    htmlContent =
+                                        await Global.getHtmlTotalIncome(
+                                      incomeData: grouped,
+                                      scaleFactor: MediaQuery.of(context)
+                                          .textScaleFactor,
+                                    );
+                                    bookStore.changeLoadingStatus(false);
+
+                                    if (kIsWeb) {
+                                    } else {
+                                      if (Platform.isWindows) {
+                                        // NavigationService.navigateTo(Routes.pdfWindowsView,
+                                        //     arguments: {
+                                        //       'busNumber': widget.busNumber,
+                                        //       'date': widget.date,
+                                        //       'driver': data?['driverName'] ?? '',
+                                        //       'conductor': data?['conductorName'] ?? '',
+                                        //       'time': data?['time'] ?? '',
+                                        //       'to': data?['toVillageName'] ?? '',
+                                        //     });
+                                      } else if (Platform.isAndroid ||
+                                          Platform.isIOS) {
+                                        // NavigationService.navigateTo(Routes.pdfView,
+                                        //     arguments: {
+                                        //       'busNumber': widget.busNumber,
+                                        //       'date': widget.date,
+                                        //       'driver': data?['driverName'] ?? '',
+                                        //       'conductor': data?['conductorName'] ?? '',
+                                        //       'time': data?['time'] ?? '',
+                                        //       'to': data?['toVillageName'] ?? '',
+                                        //     });
+                                      } else {
+                                        final tempDir =
+                                            await getTemporaryDirectory();
+                                        final htmlFile = File(
+                                            '${tempDir.path}/preview.html');
+                                        await htmlFile
+                                            .writeAsString(htmlContent);
+
+                                        final uri = Uri.file(htmlFile.path);
+                                        final launched = await launchUrl(uri,
+                                            mode:
+                                                LaunchMode.externalApplication);
+                                        if (!launched) {
+                                          throw 'Could not launch HTML file.';
+                                        }
+                                      }
+                                    }
+                                  },
+                                  child: Image.asset(
+                                    Images.view,
+                                    height: Dimens.height_25,
+                                  ),
+                                ),
+                              if (Platform.isAndroid || Platform.isIOS)
+                                Padding(
+                                  padding:
+                                      EdgeInsets.only(left: Dimens.padding_20),
+                                  child: InkWell(
+                                    onTap: () async {
+                                      var grouped = groupBookings(bookingList);
+                                      bookStore.changeLoadingStatus(true);
+                                      htmlContent =
+                                          await Global.getHtmlTotalIncome(
+                                        incomeData: grouped,
+                                        scaleFactor: MediaQuery.of(context)
+                                            .textScaleFactor,
+                                      );
+                                      if (Platform.isWindows) {
+                                        final tempDir =
+                                            await getTemporaryDirectory();
+                                        final htmlFile = File(
+                                            '${tempDir.path}/preview.html');
+                                        await htmlFile
+                                            .writeAsString(htmlContent);
+
+                                        final uri = Uri.file(htmlFile.path);
+                                        final launched = await launchUrl(uri,
+                                            mode:
+                                                LaunchMode.externalApplication);
+                                        bookStore.changeLoadingStatus(false);
+                                        if (!launched) {
+                                          throw 'Could not launch HTML file.';
+                                        }
+
+                                      } else {
+                                        Global.downloadIncomePDF(
+                                            htmlContent: htmlContent,
+                                            date:
+                                                "${DateFormat("dd-MM-yyyy").format(startDate)} - ${DateFormat("dd-MM-yyyy").format(endDate)}");
+                                        bookStore.changeLoadingStatus(false);
+                                      }
+                                    },
+                                    child: Image.asset(
+                                      Images.download,
+                                      height: Dimens.height_20,
+                                      color: primaryColor,
+                                    ),
+                                  ),
+                                ),
+                              if (Platform.isAndroid || Platform.isIOS)
+                                Padding(
+                                  padding:
+                                      EdgeInsets.only(left: Dimens.padding_20),
+                                  child: InkWell(
+                                    onTap: () async {
+                                      print("Share : $htmlContent");
+                                      var grouped = groupBookings(bookingList);
+                                      bookStore.changeLoadingStatus(true);
+                                      htmlContent =
+                                          await Global.getHtmlTotalIncome(
+                                        incomeData: grouped,
+                                        scaleFactor: MediaQuery.of(context)
+                                            .textScaleFactor,
+                                      );
+                                      bookStore.changeLoadingStatus(false);
+                                      if (Platform.isWindows) {
+                                        final tempDir =
+                                            await getTemporaryDirectory();
+                                        final htmlFile = File(
+                                            '${tempDir.path}/preview.html');
+                                        await htmlFile
+                                            .writeAsString(htmlContent);
+
+                                        final uri = Uri.file(htmlFile.path);
+                                        final launched = await launchUrl(uri,
+                                            mode:
+                                                LaunchMode.externalApplication);
+                                        if (!launched) {
+                                          throw 'Could not launch HTML file.';
+                                        }
+                                      } else {
+                                        Global.shareIncomePDF(
+                                            htmlContent: htmlContent,
+                                            date:
+                                                "${DateFormat("dd-MM-yyyy").format(startDate)} - ${DateFormat("dd-MM-yyyy").format(endDate)}");
+                                      }
+                                    },
+                                    child: Image.asset(
+                                      Images.share,
+                                      height: Dimens.height_20,
+                                      color: skyBlue,
+                                    ),
+                                  ),
+                                )
+                            ],
                           ),
                         ),
                         SizedBox(
@@ -85,60 +244,30 @@ class _TotalIncomeScreenState extends State<TotalIncomeScreen> {
                           width: Responsive.isDesktop(context)
                               ? MediaQuery.of(context).size.width / 4
                               : MediaQuery.of(context).size.width,
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Expanded(
-                                child: AppTextField(
-                                  onTap: (){
-                                    showDateRangeDialog();
-                                  },
-                                  titleText: "",
-                                  controller: TextEditingController(
-                                      text:
-                                          "${DateFormat("dd/MM/yyyy").format(startDate)} - ${DateFormat("dd/MM/yyyy").format(endDate)}"),
-                                  isReadOnly: true,
-                                  suffix: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Image.asset(
-                                      Images.dropDown,
-                                      height: Dimens.height_10,
-                                    ),
-                                  ),
-                                ),
+                          child: AppTextField(
+                            onTap: () {
+                              showDateRangeDialog();
+                            },
+                            titleText: "",
+                            controller: TextEditingController(
+                                text:
+                                    "${DateFormat("dd/MM/yyyy").format(startDate)} - ${DateFormat("dd/MM/yyyy").format(endDate)}"),
+                            isReadOnly: true,
+                            suffix: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Image.asset(
+                                Images.dropDown,
+                                height: Dimens.height_10,
                               ),
-                              SizedBox(width: Dimens.width_20,),
-                              SizedBox(
-                                width: Dimens.width_120,
-                                child: AppDropDown(
-                                  selectedItem: selectedBusNumber,
-                                  items: bookStore.busNumberList,
-                                  onItemSelected: (val) {
-                                    setState(() {
-                                      selectedBusNumber = val;
-                                    });
-                                    initData();
-                                  },
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
                         SizedBox(
                           height: Dimens.height_20,
                         ),
-                        textTile(
-                          title: Languages.of(context)!.cash,
-                          value: cash,
+                        Expanded(
+                          child: buildBookingReport(grouped),
                         ),
-                        SizedBox(
-                          height: Dimens.height_20,
-                        ),
-                        textTile(
-                          title: Languages.of(context)!.pending,
-                          value: pending,
-                          boxColor: redColor
-                        )
                       ],
                     ),
                   ),
@@ -198,7 +327,6 @@ class _TotalIncomeScreenState extends State<TotalIncomeScreen> {
     );
   }
 
-
   void showDateRangeDialog() {
     showDialog(
       context: context,
@@ -219,7 +347,8 @@ class _TotalIncomeScreenState extends State<TotalIncomeScreen> {
                   tempRange = args.value;
                 }
               },
-              maxDate: DateTime(DateTime.now().year, DateTime.now().month + 1, 0),
+              maxDate:
+                  DateTime(DateTime.now().year, DateTime.now().month + 1, 0),
               minDate: DateTime(2025),
             ),
           ),
@@ -246,4 +375,225 @@ class _TotalIncomeScreenState extends State<TotalIncomeScreen> {
     );
   }
 
+  Map<String, Map<String, int>> groupBookings(List<Booking> bookings) {
+    Map<String, Map<String, int>> grouped = {};
+
+    for (var booking in bookings) {
+      String dateKey = DateFormat('dd/MM/yyyy').format(booking.createdAt!);
+      String bus = booking.busNumber!;
+
+      // Convert cash string to int
+      int seatPrice = int.tryParse(booking.cash.toString()) ?? 0;
+
+      // Initialize date group
+      if (!grouped.containsKey(dateKey)) {
+        grouped[dateKey] = {};
+      }
+
+      // Initialize bus total
+      if (!grouped[dateKey]!.containsKey(bus)) {
+        grouped[dateKey]![bus] = 0;
+      }
+
+      // Add seat price to total
+      grouped[dateKey]![bus] = grouped[dateKey]![bus]! + seatPrice;
+    }
+
+    return grouped;
+  }
+
+  Widget buildBookingReport(Map<String, Map<String, int>> groupedData) {
+    final sortedDates = groupedData.keys.toList()
+      ..sort((a, b) => DateFormat('dd/MM/yyyy')
+          .parse(a)
+          .compareTo(DateFormat('dd/MM/yyyy').parse(b)));
+
+    List<TableRow> tableRows = [];
+
+    tableRows.add(
+      TableRow(
+        decoration: BoxDecoration(color: Colors.grey.shade300),
+        children: [
+          Padding(
+            padding: EdgeInsets.all(Dimens.padding_5),
+            child: Text(
+              Languages.of(context)!.date,
+              style: TextStyle(
+                fontSize: Dimens.fontSize_14,
+                fontFamily: Fonts.bold,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(Dimens.padding_5),
+            child: Text(
+              Languages.of(context)!.busNumber,
+              style: TextStyle(
+                fontSize: Dimens.fontSize_14,
+                fontFamily: Fonts.bold,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(Dimens.padding_5),
+            child: Text(
+              Languages.of(context)!.income,
+              style: TextStyle(
+                fontSize: Dimens.fontSize_14,
+                fontFamily: Fonts.bold,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(Dimens.padding_5),
+            child: Text(
+              Languages.of(context)!.totalIncome,
+              style: TextStyle(
+                fontSize: Dimens.fontSize_14,
+                fontFamily: Fonts.bold,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    double totalIncome = 0;
+
+    for (var date in sortedDates) {
+      final busData = groupedData[date]!;
+      bool isFirst = true;
+
+      double income = 0;
+
+      for (var entry in busData.entries) {
+        income += entry.value;
+      }
+
+      totalIncome += income;
+
+      for (var entry in busData.entries) {
+        tableRows.add(
+          TableRow(
+            children: [
+              Padding(
+                padding: EdgeInsets.all(Dimens.padding_5),
+                child: isFirst
+                    ? Text(
+                        date,
+                        style: TextStyle(
+                          fontSize: Dimens.fontSize_14,
+                          fontFamily: Fonts.medium,
+                          color: skyBlue,
+                        ),
+                      )
+                    : Text(
+                        "",
+                        style: TextStyle(
+                          fontSize: Dimens.fontSize_14,
+                          fontFamily: Fonts.medium,
+                        ),
+                      ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(Dimens.padding_5),
+                child: Text(
+                  entry.key,
+                  style: TextStyle(
+                    fontSize: Dimens.fontSize_14,
+                    fontFamily: Fonts.medium,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(Dimens.padding_5),
+                child: Text(
+                  getThousandValue(entry.value.toDouble()),
+                  style: TextStyle(
+                    fontSize: Dimens.fontSize_14,
+                    fontFamily: Fonts.medium,
+                  ),
+                ),
+              ),
+              isFirst
+                  ? Padding(
+                      padding: EdgeInsets.all(Dimens.padding_5),
+                      child: Text(
+                        getThousandValue(income),
+                        style: TextStyle(
+                          fontSize: Dimens.fontSize_14,
+                          fontFamily: Fonts.medium,
+                        ),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ],
+          ),
+        );
+        isFirst = false;
+      }
+    }
+
+    tableRows.add(
+      TableRow(
+        decoration: BoxDecoration(color: Colors.grey.shade300),
+        children: [
+          Padding(
+            padding: EdgeInsets.all(Dimens.padding_5),
+            child: Text(
+              Languages.of(context)!.totalIncome,
+              style: TextStyle(
+                fontSize: Dimens.fontSize_14,
+                fontFamily: Fonts.bold,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox.shrink(),
+          const SizedBox.shrink(),
+          Padding(
+            padding: EdgeInsets.all(Dimens.padding_5),
+            child: Text(
+              getThousandValue(totalIncome),
+              style: TextStyle(
+                fontSize: Dimens.fontSize_14,
+                fontFamily: Fonts.bold,
+                fontWeight: FontWeight.bold,
+                color: primaryColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return SingleChildScrollView(
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Table(
+          border: TableBorder.all(color: Colors.grey.shade300),
+          columnWidths: const {
+            0: FixedColumnWidth(100),
+            1: FixedColumnWidth(60),
+            2: FixedColumnWidth(80),
+            3: FixedColumnWidth(90),
+          },
+          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+          children: tableRows,
+        ),
+      ),
+    );
+  }
+
+  getThousandValue(double value) {
+    return NumberFormat.currency(
+      locale: 'en_IN',
+      symbol: '₹ ',
+      decimalDigits: 0,
+    ).format(value);
+  }
 }

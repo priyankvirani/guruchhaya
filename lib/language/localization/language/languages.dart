@@ -67,4 +67,6 @@ abstract class Languages {
   String get saved;
   String get allBusBooking;
   String get totalIncome;
+  String get income;
+  String get busNumber;
 }

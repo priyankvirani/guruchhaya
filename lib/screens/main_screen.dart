@@ -13,8 +13,11 @@ import 'package:guruchaya/widgets/app_button.dart';
 import 'package:guruchaya/widgets/app_drop_down.dart';
 import 'package:guruchaya/widgets/loading.dart';
 import 'package:intl/intl.dart';
+import 'package:pdf/pdf.dart';
+import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
 import '../helper/string.dart';
+
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -370,7 +373,7 @@ class _MainScreenState extends State<MainScreen> {
                                   width: Dimens.width_20,
                                 ),
                                 InkWell(
-                                  onTap: () {
+                                  onTap: () async {
                                     NavigationService.navigateTo(
                                         Routes.setting);
                                   },

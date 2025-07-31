@@ -780,8 +780,7 @@ class Global {
   }
 
   static Future<void> downloadIncomePDF(
-      {required String htmlContent,
-        required String date}) async {
+      {required String htmlContent, required String date}) async {
     await requestPermission();
 
     Directory? dir;
@@ -802,8 +801,7 @@ class Global {
   }
 
   static Future<void> shareIncomePDF(
-      {required String htmlContent,
-        required String date}) async {
+      {required String htmlContent, required String date}) async {
     await requestPermission();
 
     Directory? dir;
@@ -826,7 +824,18 @@ class Global {
     );
   }
 
-  static printTicket(){
+  static printTicket({
+    required String date,
+    required String busNumber,
+    required String name,
+    required String time,
+    required String busTime,
+    required String village,
+    required String seatNumber,
+    required String totalSeat,
+    required String cash,
+    required String pending,
+  }) {
     String htmlContent = '''<!DOCTYPE html>
 <html>
 <head>
@@ -861,32 +870,32 @@ class Global {
 <body>
 
   <!-- Left Ticket -->
-  <div class="field" style="top: 6.7cm; left: 4.8cm;">29/07/25</div>
-  <div class="field" style="top: 6.8cm; left: 11.4cm;">1234</div>
-  <div class="field" style="top: 7.7cm; left: 3.8cm;">રમેશભાઈ</div>
-  <div class="field" style="top: 8.7cm; left: 4.5cm;">10:30</div>
-  <div class="field" style="top: 8.8cm; left: 8.7cm;">10:30</div>
-  <div class="field" style="top: 8.8cm; left: 12.7cm;">પાલીતાણા</div>
-  <div class="field" style="top: 9.7cm; left: 4.1cm;">10-11</div>
-  <div class="field" style="top: 9.85cm; left: 14.7cm;">2</div>
-  <div class="field" style="top: 10.75cm; left: 4.2cm;">₹500</div>
-  <div class="field" style="top: 10.8cm; left: 11.6cm;">₹100</div>
+  <div class="field" style="top: 6.7cm; left: 4.8cm;">$date</div>
+  <div class="field" style="top: 6.8cm; left: 11.4cm;">$busNumber</div>
+  <div class="field" style="top: 7.7cm; left: 3.8cm;">$name</div>
+  <div class="field" style="top: 8.7cm; left: 4.5cm;">$time</div>
+  <div class="field" style="top: 8.8cm; left: 8.7cm;">$busTime</div>
+  <div class="field" style="top: 8.8cm; left: 12.7cm;">$village</div>
+  <div class="field" style="top: 9.7cm; left: 4.1cm;">$seatNumber</div>
+  <div class="field" style="top: 9.85cm; left: 14.7cm;">$totalSeat</div>
+  <div class="field" style="top: 10.75cm; left: 4.2cm;">₹$cash</div>
+  <div class="field" style="top: 10.8cm; left: 11.6cm;">₹$pending</div>
 
   <!-- Right Ticket -->
-  <div class="field" style="top: 6.7cm; left: 18.6cm;">29/07/25</div>
-  <div class="field" style="top: 6.8cm; left: 22cm;">1234</div>
-  <div class="field" style="top: 7.6cm; left: 18cm;">રમેશભાઈ</div>
-  <div class="field" style="top: 8.6cm; left: 18.3cm;">પાલીતાણા</div>
-  <div class="field" style="top: 9.7cm; left: 18.6cm;">10:30</div>
-  <div class="field" style="top: 9.7cm; left: 22cm;">10:30</div>
-  <div class="field" style="top: 10.7cm; left: 18.2cm;">10-11</div>
-  <div class="field" style="top: 10.7cm; left: 23.6cm;">2</div>
-  <div class="field" style="top: 11.7cm; left: 18.2cm;">₹500</div>
-  <div class="field" style="top: 11.7cm; left: 21.9cm;">₹100</div>
+  <div class="field" style="top: 6.7cm; left: 18.6cm;">$date</div>
+  <div class="field" style="top: 6.8cm; left: 22cm;">$busNumber</div>
+  <div class="field" style="top: 7.6cm; left: 18cm;">$name</div>
+  <div class="field" style="top: 8.6cm; left: 18.3cm;">$village</div>
+  <div class="field" style="top: 9.7cm; left: 18.6cm;">$time</div>
+  <div class="field" style="top: 9.7cm; left: 22cm;">$busTime</div>
+  <div class="field" style="top: 10.7cm; left: 18.2cm;">$seatNumber</div>
+  <div class="field" style="top: 10.7cm; left: 23.6cm;">$totalSeat</div>
+  <div class="field" style="top: 11.7cm; left: 18.2cm;">₹$cash</div>
+  <div class="field" style="top: 11.7cm; left: 21.9cm;">₹$pending</div>
 
 </body>
 </html>
 ''';
+    return htmlContent;
   }
-
 }

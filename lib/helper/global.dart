@@ -7,6 +7,7 @@ import 'package:guruchaya/helper/navigation.dart';
 import 'package:guruchaya/helper/snackbar.dart';
 import 'package:guruchaya/helper/string.dart';
 import 'package:guruchaya/language/localization/language/languages.dart';
+import 'package:guruchaya/screens/total_income_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -515,12 +516,14 @@ class Global {
   }
 
   static Future<String> getHtmlTotalIncome({
-    required Map<String, Map<String, int>> incomeData,
+    required List<TotalIncome> totalIncomeList ,
     required double scaleFactor,
   }) async {
     final ByteData imageBytes = await rootBundle.load(Images.guruchhaya);
     final Uint8List bytes = imageBytes.buffer.asUint8List();
     final String base64Image = base64Encode(bytes);
+
+    List<List<String>> busGroups = Global.getBusGroup();
 
     String htmlContent = '''
 <!DOCTYPE html>
@@ -619,15 +622,7 @@ class Global {
     th:nth-child(1), td:nth-child(1) {   
       width: 90px;
     }
-    th:nth-child(2), td:nth-child(1) {   
-      width: 70px;
-    }
-    th:nth-child(3), td:nth-child(3) {  
-      width: 90px;
-    }
-    th:nth-child(5), td:nth-child(5) {   /* બાકી */
-      width: 90px;
-    }
+    
    
 
     th {
@@ -688,13 +683,14 @@ class Global {
       <table>
         <tr>
           <th>તારીખ</th>
-          <th>ગાડી નંબર</th>
+          <th>${busGroups[0].join('\n')}</th>
+          <th>${busGroups[1].join('\n')}</th>
+          <th>${busGroups[2].join('\n')}</th>
+          <th>${busGroups[3].join('\n')}</th>
           <th>ટોટલ</th>
-           <th>સહી</th>
-          <th>કુલ ટોટલ</th>
-          <th>જમા સહી</th>
+          <th>સહી</th>
         </tr>
-        ${generateIncomeRows(incomeData)}
+        ${generateIncomeRows(totalIncomeList)}
       </table>
     </div>
 
@@ -705,42 +701,42 @@ class Global {
     return htmlContent;
   }
 
-  static String generateIncomeRows(Map<String, Map<String, int>> incomeData) {
-    final sortedDates = incomeData.keys.toList()
-      ..sort((a, b) => DateFormat('dd/MM/yyyy')
-          .parse(a)
-          .compareTo(DateFormat('dd/MM/yyyy').parse(b)));
+  static String generateIncomeRows(List<TotalIncome> totalIncomeList) {
 
     String rows = '';
 
-    int totalAmount = 0;
 
-    for (int index = 0; index < sortedDates.length; index++) {
-      final date = sortedDates[index];
-      final busData = incomeData[date]!;
-      int val = 0;
-      busData.forEach((key, value) {
-        val += value;
-      });
+
+    for (int index = 0; index < totalIncomeList.length; index++) {
 
       rows += '''
     <tr>
-      <td>$date</td>
-      <td>${getStringBusNumberList(busData)}</td>
-      <td>${getStringBusIncome(busData)}</td>
-      <td></td>
-      <td>${getThousandValue(val)}</td>
+      <td>${totalIncomeList[index].date}</td>
+      <td>${getBusNumberIncome(totalIncomeList[index].value1)}</td>
+      <td>${getBusNumberIncome(totalIncomeList[index].value2)}</td>
+      <td>${getBusNumberIncome(totalIncomeList[index].value3)}</td>
+      <td>${getBusNumberIncome(totalIncomeList[index].value4)}</td>
+      <td>${getThousandValue(totalIncomeList[index].total)}</td>
       <td></td>
     </tr>
     ''';
-      totalAmount += val;
+
     }
 
+    List<int> calculateColumnsTotal = calculateColumnTotals(totalIncomeList);
+
+   int totalIncome = calculateColumnsTotal.fold(0, (sum, value) => sum + value);
+
+
     String displayTotal = '''<tr>
-    <td colspan="2" style="text-align: right; font-weight: bold;">કુલ રકમ</td>
-    <td colspan="4" style="font-weight: bold;">${getThousandValue(totalAmount)}</td>
-   
-  </tr>''';
+      <th>કુલ આવક</th>
+      <td>${getThousandValue(calculateColumnsTotal[0])}</td>
+      <td>${getThousandValue(calculateColumnsTotal[1])}</td>
+      <td>${getThousandValue(calculateColumnsTotal[2])}</td>
+      <td>${getThousandValue(calculateColumnsTotal[3])}</td>
+      <td>${getThousandValue(totalIncome)}</td>
+      <td></td>
+    </tr>''';
 
     rows += displayTotal;
 
@@ -870,32 +866,70 @@ class Global {
 <body>
 
   <!-- Left Ticket -->
-  <div class="field" style="top: 6.7cm; left: 4.8cm;">$date</div>
-  <div class="field" style="top: 6.8cm; left: 11.4cm;">$busNumber</div>
-  <div class="field" style="top: 7.7cm; left: 3.8cm;">$name</div>
-  <div class="field" style="top: 8.7cm; left: 4.5cm;">$time</div>
-  <div class="field" style="top: 8.8cm; left: 8.7cm;">$busTime</div>
-  <div class="field" style="top: 8.8cm; left: 12.7cm;">$village</div>
-  <div class="field" style="top: 9.7cm; left: 4.1cm;">$seatNumber</div>
-  <div class="field" style="top: 9.85cm; left: 14.7cm;">$totalSeat</div>
-  <div class="field" style="top: 10.75cm; left: 4.2cm;">₹$cash</div>
-  <div class="field" style="top: 10.8cm; left: 11.6cm;">₹$pending</div>
+  <div class="field" style="top: 6.6cm; left: 4.7cm;">$date</div>
+  <div class="field" style="top: 6.6cm; left: 11.4cm;">$busNumber</div>
+  <div class="field" style="top: 7.6cm; left: 3.7cm;">$name</div>
+  <div class="field" style="top: 8.7cm; left: 4.3cm;">$time</div>
+  <div class="field" style="top: 8.7cm; left: 8.7cm;">$busTime</div>
+  <div class="field" style="top: 8.7cm; left: 12.7cm;">$village</div>
+  <div class="field" style="top: 9.6cm; left: 4.1cm;">$seatNumber</div>
+  <div class="field" style="top: 9.7cm; left: 14.7cm;">$totalSeat</div>
+  <div class="field" style="top: 10.6cm; left: 4.1cm;">₹$cash</div>
+  <div class="field" style="top: 10.7cm; left: 11.5cm;">₹$pending</div>
 
   <!-- Right Ticket -->
-  <div class="field" style="top: 6.7cm; left: 18.6cm;">$date</div>
-  <div class="field" style="top: 6.8cm; left: 22cm;">$busNumber</div>
-  <div class="field" style="top: 7.6cm; left: 18cm;">$name</div>
-  <div class="field" style="top: 8.6cm; left: 18.3cm;">$village</div>
-  <div class="field" style="top: 9.7cm; left: 18.6cm;">$time</div>
-  <div class="field" style="top: 9.7cm; left: 22cm;">$busTime</div>
-  <div class="field" style="top: 10.7cm; left: 18.2cm;">$seatNumber</div>
-  <div class="field" style="top: 10.7cm; left: 23.6cm;">$totalSeat</div>
-  <div class="field" style="top: 11.7cm; left: 18.2cm;">₹$cash</div>
-  <div class="field" style="top: 11.7cm; left: 21.9cm;">₹$pending</div>
+  <div class="field" style="top: 6.55cm; left: 18.5cm;">$date</div>
+  <div class="field" style="top: 6.55cm; left: 22cm;">$busNumber</div>
+  <div class="field" style="top: 7.5cm; left: 17cm;">$name</div>
+  <div class="field" style="top: 8.5cm; left: 18.3cm;">$village</div>
+  <div class="field" style="top: 9.55cm; left: 18.6cm;">$time</div>
+  <div class="field" style="top: 9.55cm; left: 22cm;">$busTime</div>
+  <div class="field" style="top: 10.5cm; left: 18.2cm;">$seatNumber</div>
+  <div class="field" style="top: 10.5cm; left: 23.6cm;">$totalSeat</div>
+  <div class="field" style="top: 11.5cm; left: 18.2cm;">₹$cash</div>
+  <div class="field" style="top: 11.5cm; left: 21.9cm;">₹$pending</div>
 
 </body>
 </html>
 ''';
     return htmlContent;
   }
+
+  static List<List<String>> getBusGroup() {
+    List<dynamic> list = getBookingStore(NavigationService.context).busNumberList;
+
+    List<List<String>> busGroups = [];
+
+    for (int i = 0; i < list.length; i += 2) {
+      if (i + 1 < list.length) {
+        busGroups.add([list[i], list[i + 1]]);
+      } else {
+        busGroups.add([list[i]]); // In case of an odd item left at the end
+      }
+    }
+    return busGroups;
+  }
+
+ static String getBusNumberIncome(List<Map<String, num>> value) {
+    List<String> lines = value.map((map) {
+      final key = map.keys.first;
+      final value = map.values.first;
+      return '$key - $value';
+    }).toList();
+    return lines.join('\n');
+  }
+
+  static List<int> calculateColumnTotals(List<TotalIncome> incomeList) {
+    int v1 = 0, v2 = 0, v3 = 0, v4 = 0;
+
+    for (var item in incomeList) {
+      v1 += item.value1.fold(0, (sum, m) => sum + m.values.first.toInt());
+      v2 += item.value2.fold(0, (sum, m) => sum + m.values.first.toInt());
+      v3 += item.value3.fold(0, (sum, m) => sum + m.values.first.toInt());
+      v4 += item.value4.fold(0, (sum, m) => sum + m.values.first.toInt());
+    }
+
+    return [v1,v2,v3,v4];
+  }
+
 }

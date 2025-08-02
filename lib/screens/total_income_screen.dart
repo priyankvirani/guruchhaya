@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:guruchaya/helper/colors.dart';
 import 'package:guruchaya/helper/dimens.dart';
+import 'package:guruchaya/helper/global.dart';
 import 'package:guruchaya/helper/responsive.dart';
 import 'package:guruchaya/language/localization/language/languages.dart';
 import 'package:guruchaya/model/booking.dart';
@@ -16,7 +16,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../helper/global.dart';
 import '../helper/string.dart';
 
 class TotalIncomeScreen extends StatefulWidget {
@@ -24,7 +23,23 @@ class TotalIncomeScreen extends StatefulWidget {
   State<TotalIncomeScreen> createState() => _TotalIncomeScreenState();
 }
 
+class TotalIncome {
+  String date;
+  List<Map<String, num>> value1;
+  List<Map<String, num>> value2;
+  List<Map<String, num>> value3;
+  List<Map<String, num>> value4;
+  int total;
 
+  TotalIncome(
+      {required this.date,
+      required this.value1,
+      required this.value2,
+      required this.value3,
+      required this.value4,
+      required this.total});
+
+}
 
 class _TotalIncomeScreenState extends State<TotalIncomeScreen> {
   DateTime startDate = DateTime(DateTime.now().year, DateTime.now().month, 1);
@@ -35,6 +50,8 @@ class _TotalIncomeScreenState extends State<TotalIncomeScreen> {
   List<Booking> bookingList = [];
 
   String htmlContent = "";
+
+  List<TotalIncome> totalIncomeList = [];
 
   @override
   void initState() {
@@ -53,11 +70,7 @@ class _TotalIncomeScreenState extends State<TotalIncomeScreen> {
         .getDateWiseData(startDate, endDate)
         .then((val) async {
       bookingList = val;
-      var grouped = groupBookings(bookingList);
-      htmlContent = await Global.getHtmlTotalIncome(
-        incomeData: grouped,
-        scaleFactor: MediaQuery.of(context).textScaleFactor,
-      );
+      generateTotalData(bookingList);
       setState(() {});
     });
   }
@@ -68,7 +81,6 @@ class _TotalIncomeScreenState extends State<TotalIncomeScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Consumer<BookingController>(
         builder: (context, bookStore, snapshot) {
-          var grouped = groupBookings(bookingList);
           return Stack(
             children: [
               SafeArea(
@@ -86,148 +98,61 @@ class _TotalIncomeScreenState extends State<TotalIncomeScreen> {
                           child: BackAppBar(
                             title: Languages.of(context)!.totalIncome,
                             actions: [
-                              if (Platform.isWindows)
-                                InkWell(
+                              Padding(
+                                padding:
+                                    EdgeInsets.only(left: Dimens.padding_20),
+                                child: InkWell(
                                   onTap: () async {
-                                    var grouped = groupBookings(bookingList);
-                                    bookStore.changeLoadingStatus(true);
-                                    htmlContent =
-                                        await Global.getHtmlTotalIncome(
-                                      incomeData: grouped,
-                                      scaleFactor: MediaQuery.of(context)
-                                          .textScaleFactor,
+                                    htmlContent = await Global.getHtmlTotalIncome(
+                                      totalIncomeList: totalIncomeList,
+                                      scaleFactor: MediaQuery.of(context).textScaleFactor,
                                     );
-                                    bookStore.changeLoadingStatus(false);
+                                    if (Platform.isWindows) {
+                                      final tempDir =
+                                          await getTemporaryDirectory();
+                                      final htmlFile =
+                                          File('${tempDir.path}/income.html');
+                                      await htmlFile.writeAsString(htmlContent);
 
-                                    if (kIsWeb) {
-                                    } else {
-                                      if (Platform.isWindows) {
-                                        // NavigationService.navigateTo(Routes.pdfWindowsView,
-                                        //     arguments: {
-                                        //       'busNumber': widget.busNumber,
-                                        //       'date': widget.date,
-                                        //       'driver': data?['driverName'] ?? '',
-                                        //       'conductor': data?['conductorName'] ?? '',
-                                        //       'time': data?['time'] ?? '',
-                                        //       'to': data?['toVillageName'] ?? '',
-                                        //     });
-                                      } else if (Platform.isAndroid ||
-                                          Platform.isIOS) {
-                                        // NavigationService.navigateTo(Routes.pdfView,
-                                        //     arguments: {
-                                        //       'busNumber': widget.busNumber,
-                                        //       'date': widget.date,
-                                        //       'driver': data?['driverName'] ?? '',
-                                        //       'conductor': data?['conductorName'] ?? '',
-                                        //       'time': data?['time'] ?? '',
-                                        //       'to': data?['toVillageName'] ?? '',
-                                        //     });
-                                      } else {
-                                        final tempDir =
-                                            await getTemporaryDirectory();
-                                        final htmlFile = File(
-                                            '${tempDir.path}/preview.html');
-                                        await htmlFile
-                                            .writeAsString(htmlContent);
-
-                                        final uri = Uri.file(htmlFile.path);
-                                        final launched = await launchUrl(uri,
-                                            mode:
-                                                LaunchMode.externalApplication);
-                                        if (!launched) {
-                                          throw 'Could not launch HTML file.';
-                                        }
+                                      final uri = Uri.file(htmlFile.path);
+                                      final launched = await launchUrl(uri,
+                                          mode: LaunchMode.externalApplication);
+                                      bookStore.changeLoadingStatus(false);
+                                      if (!launched) {
+                                        throw 'Could not launch HTML file.';
                                       }
+                                    } else {
+                                      Global.downloadIncomePDF(
+                                          htmlContent: htmlContent,
+                                          date:
+                                              "${DateFormat("dd-MM-yyyy").format(startDate)} - ${DateFormat("dd-MM-yyyy").format(endDate)}");
+                                      bookStore.changeLoadingStatus(false);
                                     }
                                   },
                                   child: Image.asset(
-                                    Images.view,
-                                    height: Dimens.height_25,
+                                    Images.download,
+                                    height: Dimens.height_20,
+                                    color: primaryColor,
                                   ),
                                 ),
+                              ),
                               if (Platform.isAndroid || Platform.isIOS)
                                 Padding(
                                   padding:
                                       EdgeInsets.only(left: Dimens.padding_20),
                                   child: InkWell(
                                     onTap: () async {
-                                      var grouped = groupBookings(bookingList);
-                                      bookStore.changeLoadingStatus(true);
-                                      htmlContent =
-                                          await Global.getHtmlTotalIncome(
-                                        incomeData: grouped,
-                                        scaleFactor: MediaQuery.of(context)
-                                            .textScaleFactor,
-                                      );
-                                      if (Platform.isWindows) {
-                                        final tempDir =
-                                            await getTemporaryDirectory();
-                                        final htmlFile = File(
-                                            '${tempDir.path}/preview.html');
-                                        await htmlFile
-                                            .writeAsString(htmlContent);
 
-                                        final uri = Uri.file(htmlFile.path);
-                                        final launched = await launchUrl(uri,
-                                            mode:
-                                                LaunchMode.externalApplication);
-                                        bookStore.changeLoadingStatus(false);
-                                        if (!launched) {
-                                          throw 'Could not launch HTML file.';
-                                        }
-
-                                      } else {
-                                        Global.downloadIncomePDF(
-                                            htmlContent: htmlContent,
-                                            date:
-                                                "${DateFormat("dd-MM-yyyy").format(startDate)} - ${DateFormat("dd-MM-yyyy").format(endDate)}");
-                                        bookStore.changeLoadingStatus(false);
-                                      }
-                                    },
-                                    child: Image.asset(
-                                      Images.download,
-                                      height: Dimens.height_20,
-                                      color: primaryColor,
-                                    ),
-                                  ),
-                                ),
-                              if (Platform.isAndroid || Platform.isIOS)
-                                Padding(
-                                  padding:
-                                      EdgeInsets.only(left: Dimens.padding_20),
-                                  child: InkWell(
-                                    onTap: () async {
-                                      print("Share : $htmlContent");
-                                      var grouped = groupBookings(bookingList);
-                                      bookStore.changeLoadingStatus(true);
-                                      htmlContent =
-                                          await Global.getHtmlTotalIncome(
-                                        incomeData: grouped,
-                                        scaleFactor: MediaQuery.of(context)
-                                            .textScaleFactor,
+                                      htmlContent = await Global.getHtmlTotalIncome(
+                                        totalIncomeList: totalIncomeList,
+                                        scaleFactor: MediaQuery.of(context).textScaleFactor,
                                       );
+
                                       bookStore.changeLoadingStatus(false);
-                                      if (Platform.isWindows) {
-                                        final tempDir =
-                                            await getTemporaryDirectory();
-                                        final htmlFile = File(
-                                            '${tempDir.path}/preview.html');
-                                        await htmlFile
-                                            .writeAsString(htmlContent);
-
-                                        final uri = Uri.file(htmlFile.path);
-                                        final launched = await launchUrl(uri,
-                                            mode:
-                                                LaunchMode.externalApplication);
-                                        if (!launched) {
-                                          throw 'Could not launch HTML file.';
-                                        }
-                                      } else {
-                                        Global.shareIncomePDF(
-                                            htmlContent: htmlContent,
-                                            date:
-                                                "${DateFormat("dd-MM-yyyy").format(startDate)} - ${DateFormat("dd-MM-yyyy").format(endDate)}");
-                                      }
+                                      Global.shareIncomePDF(
+                                          htmlContent: htmlContent,
+                                          date:
+                                          "${DateFormat("dd-MM-yyyy").format(startDate)} - ${DateFormat("dd-MM-yyyy").format(endDate)}");
                                     },
                                     child: Image.asset(
                                       Images.share,
@@ -242,6 +167,7 @@ class _TotalIncomeScreenState extends State<TotalIncomeScreen> {
                         SizedBox(
                           height: Dimens.height_20,
                         ),
+                        if(_selectedRange != null)
                         SizedBox(
                           width: Responsive.isDesktop(context)
                               ? MediaQuery.of(context).size.width / 4
@@ -253,7 +179,7 @@ class _TotalIncomeScreenState extends State<TotalIncomeScreen> {
                             titleText: "",
                             controller: TextEditingController(
                                 text:
-                                    "${DateFormat("dd/MM/yyyy").format(startDate)} - ${DateFormat("dd/MM/yyyy").format(endDate)}"),
+                                    "${DateFormat("dd/MM/yyyy").format(_selectedRange!.startDate!)} - ${DateFormat("dd/MM/yyyy").format(_selectedRange!.endDate!)}"),
                             isReadOnly: true,
                             suffix: Padding(
                               padding: const EdgeInsets.all(8.0),
@@ -268,7 +194,7 @@ class _TotalIncomeScreenState extends State<TotalIncomeScreen> {
                           height: Dimens.height_20,
                         ),
                         Expanded(
-                          child: buildBookingReport(grouped),
+                          child: buildBookingReport(),
                         ),
                       ],
                     ),
@@ -279,52 +205,6 @@ class _TotalIncomeScreenState extends State<TotalIncomeScreen> {
             ],
           );
         },
-      ),
-    );
-  }
-
-  textTile(
-      {required String title,
-      required int value,
-      Color boxColor = primaryColor}) {
-    return SizedBox(
-      width: Responsive.isDesktop(context)
-          ? MediaQuery.of(context).size.width / 4
-          : MediaQuery.of(context).size.width,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          SizedBox(
-            width: Dimens.width_100,
-            child: Text(
-              title,
-              style: TextStyle(
-                  color: Theme.of(context).textTheme.labelSmall!.color,
-                  fontSize: Dimens.fontSize_16,
-                  fontWeight: FontWeight.w700),
-            ),
-          ),
-          Container(
-            padding: EdgeInsets.all(Dimens.padding_12),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-                color: boxColor,
-                borderRadius: BorderRadius.circular(Dimens.radius_8)),
-            child: Text(
-              NumberFormat.currency(
-                locale: 'en_IN',
-                symbol: '₹ ',
-                decimalDigits: 0,
-              ).format(value),
-              style: TextStyle(
-                color: whiteColor,
-                fontSize: Dimens.fontSize_14,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -377,38 +257,8 @@ class _TotalIncomeScreenState extends State<TotalIncomeScreen> {
     );
   }
 
-  Map<String, Map<String, int>> groupBookings(List<Booking> bookings) {
-    Map<String, Map<String, int>> grouped = {};
-
-    for (var booking in bookings) {
-      String dateKey = DateFormat('dd/MM/yyyy').format(booking.createdAt!);
-      String bus = booking.busNumber!;
-
-      // Convert cash string to int
-      int seatPrice = int.tryParse(booking.cash.toString()) ?? 0;
-
-      // Initialize date group
-      if (!grouped.containsKey(dateKey)) {
-        grouped[dateKey] = {};
-      }
-
-      // Initialize bus total
-      if (!grouped[dateKey]!.containsKey(bus)) {
-        grouped[dateKey]![bus] = 0;
-      }
-
-      // Add seat price to total
-      grouped[dateKey]![bus] = grouped[dateKey]![bus]! + seatPrice;
-    }
-
-    return grouped;
-  }
-
-  Widget buildBookingReport(Map<String, Map<String, int>> groupedData) {
-    final sortedDates = groupedData.keys.toList()
-      ..sort((a, b) => DateFormat('dd/MM/yyyy')
-          .parse(a)
-          .compareTo(DateFormat('dd/MM/yyyy').parse(b)));
+  Widget buildBookingReport() {
+    List<List<String>> busGroups = Global.getBusGroup();
 
     List<TableRow> tableRows = [];
 
@@ -427,28 +277,18 @@ class _TotalIncomeScreenState extends State<TotalIncomeScreen> {
               ),
             ),
           ),
-          Padding(
-            padding: EdgeInsets.all(Dimens.padding_5),
-            child: Text(
-              Languages.of(context)!.busNumber,
-              style: TextStyle(
-                fontSize: Dimens.fontSize_14,
-                fontFamily: Fonts.bold,
-                fontWeight: FontWeight.bold,
+          for (int i = 0; i < busGroups.length; i++)
+            Padding(
+              padding: EdgeInsets.all(Dimens.padding_5),
+              child: Text(
+                busGroups[i].join('\n'),
+                style: TextStyle(
+                  fontSize: Dimens.fontSize_14,
+                  fontFamily: Fonts.bold,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-          ),
-          Padding(
-            padding: EdgeInsets.all(Dimens.padding_5),
-            child: Text(
-              Languages.of(context)!.income,
-              style: TextStyle(
-                fontSize: Dimens.fontSize_14,
-                fontFamily: Fonts.bold,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
           Padding(
             padding: EdgeInsets.all(Dimens.padding_5),
             child: Text(
@@ -466,79 +306,83 @@ class _TotalIncomeScreenState extends State<TotalIncomeScreen> {
 
     double totalIncome = 0;
 
-    for (var date in sortedDates) {
-      final busData = groupedData[date]!;
-      bool isFirst = true;
-
-      double income = 0;
-
-      for (var entry in busData.entries) {
-        income += entry.value;
-      }
-
-      totalIncome += income;
-
-      for (var entry in busData.entries) {
-        tableRows.add(
-          TableRow(
-            children: [
-              Padding(
-                padding: EdgeInsets.all(Dimens.padding_5),
-                child: isFirst
-                    ? Text(
-                        date,
-                        style: TextStyle(
-                          fontSize: Dimens.fontSize_14,
-                          fontFamily: Fonts.medium,
-                          color: skyBlue,
-                        ),
-                      )
-                    : Text(
-                        "",
-                        style: TextStyle(
-                          fontSize: Dimens.fontSize_14,
-                          fontFamily: Fonts.medium,
-                        ),
-                      ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(Dimens.padding_5),
-                child: Text(
-                  entry.key,
-                  style: TextStyle(
-                    fontSize: Dimens.fontSize_14,
-                    fontFamily: Fonts.medium,
-                  ),
+    for (var income in totalIncomeList) {
+      tableRows.add(
+        TableRow(
+          children: [
+            Padding(
+              padding: EdgeInsets.all(Dimens.padding_5),
+              child: Text(
+                income.date,
+                style: TextStyle(
+                  fontSize: Dimens.fontSize_14,
+                  fontFamily: Fonts.medium,
+                  color: skyBlue,
                 ),
               ),
-              Padding(
-                padding: EdgeInsets.all(Dimens.padding_5),
-                child: Text(
-                  getThousandValue(entry.value.toDouble()),
-                  style: TextStyle(
-                    fontSize: Dimens.fontSize_14,
-                    fontFamily: Fonts.medium,
-                  ),
+            ),
+            Padding(
+              padding: EdgeInsets.all(Dimens.padding_5),
+              child: Text(
+                Global.getBusNumberIncome(income.value1),
+                style: TextStyle(
+                  fontSize: Dimens.fontSize_14,
+                  fontFamily: Fonts.medium,
+                  color: textColor,
                 ),
               ),
-              isFirst
-                  ? Padding(
-                      padding: EdgeInsets.all(Dimens.padding_5),
-                      child: Text(
-                        getThousandValue(income),
-                        style: TextStyle(
-                          fontSize: Dimens.fontSize_14,
-                          fontFamily: Fonts.medium,
-                        ),
-                      ),
-                    )
-                  : const SizedBox.shrink(),
-            ],
-          ),
-        );
-        isFirst = false;
-      }
+            ),
+            Padding(
+              padding: EdgeInsets.all(Dimens.padding_5),
+              child: Text(
+                Global.getBusNumberIncome(income.value2),
+                style: TextStyle(
+                  fontSize: Dimens.fontSize_14,
+                  fontFamily: Fonts.medium,
+                  color: textColor,
+                ),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.all(Dimens.padding_5),
+              child: Text(
+                Global.getBusNumberIncome(income.value3),
+                style: TextStyle(
+                  fontSize: Dimens.fontSize_14,
+                  fontFamily: Fonts.medium,
+                  color: textColor,
+                ),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.all(Dimens.padding_5),
+              child: Text(
+                Global.getBusNumberIncome(income.value4),
+                style: TextStyle(
+                  fontSize: Dimens.fontSize_14,
+                  fontFamily: Fonts.medium,
+                  color: textColor,
+                ),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.all(Dimens.padding_5),
+              child: Text(
+                Global.getThousandValue(income.total),
+                style: TextStyle(
+                  fontSize: Dimens.fontSize_14,
+                  fontFamily: Fonts.medium,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
     }
+
+    List<int> calculateColumnsTotal = Global.calculateColumnTotals(totalIncomeList);
+
+    totalIncome = calculateColumnsTotal.fold(0, (sum, value) => sum + value);
 
     tableRows.add(
       TableRow(
@@ -555,17 +399,26 @@ class _TotalIncomeScreenState extends State<TotalIncomeScreen> {
               ),
             ),
           ),
-          const SizedBox.shrink(),
-          const SizedBox.shrink(),
+          for (int i = 0; i < calculateColumnsTotal.length; i++)
+            Padding(
+              padding: EdgeInsets.all(Dimens.padding_5),
+              child: Text(
+                Global.getThousandValue(calculateColumnsTotal[i]),
+                style: TextStyle(
+                  fontSize: Dimens.fontSize_14,
+                  fontFamily: Fonts.bold,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           Padding(
             padding: EdgeInsets.all(Dimens.padding_5),
             child: Text(
-              getThousandValue(totalIncome),
+              Global.getThousandValue(totalIncome.toInt()),
               style: TextStyle(
                 fontSize: Dimens.fontSize_14,
                 fontFamily: Fonts.bold,
                 fontWeight: FontWeight.bold,
-                color: primaryColor,
               ),
             ),
           ),
@@ -580,9 +433,11 @@ class _TotalIncomeScreenState extends State<TotalIncomeScreen> {
           border: TableBorder.all(color: Colors.grey.shade300),
           columnWidths: const {
             0: FixedColumnWidth(100),
-            1: FixedColumnWidth(60),
-            2: FixedColumnWidth(80),
-            3: FixedColumnWidth(90),
+            1: FixedColumnWidth(120),
+            2: FixedColumnWidth(120),
+            3: FixedColumnWidth(120),
+            4: FixedColumnWidth(120),
+            5: FixedColumnWidth(100),
           },
           defaultVerticalAlignment: TableCellVerticalAlignment.middle,
           children: tableRows,
@@ -591,11 +446,99 @@ class _TotalIncomeScreenState extends State<TotalIncomeScreen> {
     );
   }
 
-  getThousandValue(double value) {
-    return NumberFormat.currency(
-      locale: 'en_IN',
-      symbol: '₹ ',
-      decimalDigits: 0,
-    ).format(value);
+  generateTotalData(List<Booking> bookings) async {
+    List<TotalIncome> totalIncomeList = [];
+    List<List<String>> busGroups = Global.getBusGroup();
+
+    List<String> dateList = [];
+
+    while (startDate.isBefore(endDate) || startDate.isAtSameMomentAs(endDate)) {
+      dateList.add(DateFormat('dd-MM-yyyy').format(startDate));
+      startDate = startDate.add(Duration(days: 1));
+    }
+
+    for (var date in dateList) {
+      TotalIncome totalIncome = TotalIncome(
+        date: date,
+        value1: [
+          {busGroups[0].first: 0},
+          {busGroups[0].last: 0}
+        ],
+        value2: [
+          {busGroups[1].first: 0},
+          {busGroups[1].last: 0}
+        ],
+        value3: [
+          {busGroups[2].first: 0},
+          {busGroups[2].last: 0}
+        ],
+        value4: [
+          {busGroups[3].first: 0},
+          {busGroups[3].last: 0}
+        ],
+        total: 0,
+      );
+      totalIncomeList.add(totalIncome);
+    }
+
+    for (var income in totalIncomeList) {
+      int index = totalIncomeList.indexOf(income);
+
+      TotalIncome totalIncome = TotalIncome(
+        date: income.date,
+        value1:
+            getGroupIncomeFromBusNumber(income.value1, income.date, bookings),
+        value2:
+            getGroupIncomeFromBusNumber(income.value2, income.date, bookings),
+        value3:
+            getGroupIncomeFromBusNumber(income.value3, income.date, bookings),
+        value4:
+            getGroupIncomeFromBusNumber(income.value4, income.date, bookings),
+        total: 0,
+      );
+      totalIncomeList[index] = totalIncome;
+      totalIncomeList[index].total = calculatePerDayTotals(totalIncome);
+    }
+
+    setState(() {
+      this.totalIncomeList = totalIncomeList;
+    });
+
+    htmlContent = await Global.getHtmlTotalIncome(
+      totalIncomeList: totalIncomeList,
+      scaleFactor: MediaQuery.of(context).textScaleFactor,
+    );
+    setState(() {});
   }
+
+  List<Map<String, num>> getGroupIncomeFromBusNumber(
+    List<Map<String, num>> value,
+    String date,
+    List<Booking> bookings,
+  ) {
+    return value
+        .map((map) {
+          final busNumber = map.keys.first;
+
+          final total = bookings
+              .where((b) => b.busNumber == busNumber && b.date == date)
+              .fold<num>(
+                  0, (sum, b) => sum + (num.tryParse(b.cash ?? '0') ?? 0));
+
+          return {busNumber: total};
+        })
+        .where((map) => map.values.first > 0)
+        .toList();
+  }
+
+  int calculatePerDayTotals(TotalIncome income) {
+    int total = 0;
+    for (var entry in [...income.value1, ...income.value2, ...income.value3, ...income.value4]) {
+      total += entry.values.first.toInt();
+    }
+    return total;
+  }
+
+
+
 }

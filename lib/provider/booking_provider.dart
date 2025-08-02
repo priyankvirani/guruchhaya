@@ -291,22 +291,34 @@ class BookingController extends ChangeNotifier {
 
   Future<List<Booking>> getDateWiseData(
       DateTime fromDate, DateTime toDate) async {
-    final supabase = Supabase.instance.client;
-    changeLoadingStatus(true);
-    final String from = fromDate.toIso8601String();
-    final String to = toDate.toIso8601String();
 
-    final response = await supabase
-        .from('bus_bookings')
-        .select()
-        .gte('created_at', from)
-        .lte('created_at', to);
-    changeLoadingStatus(false);
+    int page = 0;
+    int pageSize = 1000;
+    bool hasMore = true;
     List<Booking> bookings = [];
-    for (var item in response) {
-      Booking booking = Booking.fromJson(item);
-      bookings.add(booking);
+    while (hasMore) {
+      changeLoadingStatus(true);
+      // final String from = fromDate.toIso8601String();
+      // final String to = toDate.add(Duration(days: 1)).toIso8601String();
+
+      final response = await Supabase.instance.client
+          .from('bus_bookings')
+          .select()
+          .range(page * pageSize, (page + 1) * pageSize - 1);
+      changeLoadingStatus(false);
+      final data = response;
+      if (data.isEmpty || data.length < pageSize) {
+        hasMore = false;
+      } else {
+        page++;
+      }
+      for (var item in response) {
+        Booking booking = Booking.fromJson(item);
+        bookings.add(booking);
+      }
     }
+
+    print("bookings : ${bookings.length}");
     return bookings;
   }
 }

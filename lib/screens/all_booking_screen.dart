@@ -114,7 +114,7 @@ class _AllBookingScreenState extends State<AllBookingScreen> {
                               height: Dimens.height_25,
                             ),
                           ),
-                          if(Platform.isAndroid || Platform.isIOS)
+
                           Padding(
                             padding:  EdgeInsets.only(left: Dimens.padding_20),
                             child: InkWell(

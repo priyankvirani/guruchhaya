@@ -172,7 +172,7 @@ class _PassengerDetailsDialogState extends State<PassengerDetailsDialog> {
                                       Booking booking = widget.booking!;
                                       String html = Global.printTicket(
                                         village: booking.villageName!,
-                                        date: booking.date!,
+                                        date: DateFormat('dd/MM/yy').format(DateFormat('dd-MM-yyyy').parse(booking.date!)),
                                         busNumber: booking.busNumber!,
                                         name: booking.fullName!,
                                         time: booking.place!.toString().split("(").last.replaceAll(')', "").split("-").first,

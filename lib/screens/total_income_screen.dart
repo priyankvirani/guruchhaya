@@ -521,7 +521,7 @@ class _TotalIncomeScreenState extends State<TotalIncomeScreen> {
           final busNumber = map.keys.first;
 
           final total = bookings
-              .where((b) => b.busNumber == busNumber && b.date == date)
+              .where((b) => b.busNumber == busNumber && b.date == date && (b.isSplit ?? false ? true : Global.seatLayout.contains(b.seatNumber)))
               .fold<num>(
                   0, (sum, b) => sum + (num.tryParse(b.cash ?? '0') ?? 0));
 

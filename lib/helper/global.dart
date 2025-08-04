@@ -866,28 +866,28 @@ class Global {
 <body>
 
   <!-- Left Ticket -->
-  <div class="field" style="top: 6.6cm; left: 4.7cm;">$date</div>
-  <div class="field" style="top: 6.6cm; left: 11.4cm;">$busNumber</div>
-  <div class="field" style="top: 7.6cm; left: 3.7cm;">$name</div>
-  <div class="field" style="top: 8.7cm; left: 4.3cm;">$time</div>
-  <div class="field" style="top: 8.7cm; left: 8.7cm;">$busTime</div>
-  <div class="field" style="top: 8.7cm; left: 12.7cm;">$village</div>
-  <div class="field" style="top: 9.6cm; left: 4.1cm;">$seatNumber</div>
-  <div class="field" style="top: 9.7cm; left: 14.7cm;">$totalSeat</div>
-  <div class="field" style="top: 10.6cm; left: 4.1cm;">₹$cash</div>
-  <div class="field" style="top: 10.7cm; left: 11.5cm;">₹$pending</div>
+  <div class="field" style="top: 6.5cm; left: 4.8cm;">$date</div>
+  <div class="field" style="top: 6.5cm; left: 11.8cm;">$busNumber</div>
+  <div class="field" style="top: 7.5cm; left: 3.9cm;">$name</div>
+  <div class="field" style="top: 8.5cm; left: 4.7cm;">$time</div>
+  <div class="field" style="top: 8.5cm; left: 9.1cm;">$busTime</div>
+  <div class="field" style="top: 8.5cm; left: 12.9cm;">$village</div>
+  <div class="field" style="top: 9.5cm; left: 4.3cm;">$seatNumber</div>
+  <div class="field" style="top: 9.5cm; left: 14.8cm;">$totalSeat</div>
+  <div class="field" style="top: 10.5cm; left: 4.3cm;">₹$cash</div>
+  <div class="field" style="top: 10.5cm; left: 11.7cm;">₹$pending</div>
 
   <!-- Right Ticket -->
-  <div class="field" style="top: 6.55cm; left: 18.5cm;">$date</div>
-  <div class="field" style="top: 6.55cm; left: 22cm;">$busNumber</div>
-  <div class="field" style="top: 7.5cm; left: 17cm;">$name</div>
-  <div class="field" style="top: 8.5cm; left: 18.3cm;">$village</div>
-  <div class="field" style="top: 9.55cm; left: 18.6cm;">$time</div>
-  <div class="field" style="top: 9.55cm; left: 22cm;">$busTime</div>
-  <div class="field" style="top: 10.5cm; left: 18.2cm;">$seatNumber</div>
-  <div class="field" style="top: 10.5cm; left: 23.6cm;">$totalSeat</div>
-  <div class="field" style="top: 11.5cm; left: 18.2cm;">₹$cash</div>
-  <div class="field" style="top: 11.5cm; left: 21.9cm;">₹$pending</div>
+  <div class="field" style="top: 6.3cm; left: 18.7cm;">$date</div>
+  <div class="field" style="top: 6.3cm; left: 22.2cm;">$busNumber</div>
+  <div class="field" style="top: 7.3cm; left: 18.3cm;">$name</div>
+  <div class="field" style="top: 8.3cm; left: 18.5cm;">$village</div>
+  <div class="field" style="top: 9.25cm; left: 18.8cm;">$time</div>
+  <div class="field" style="top: 9.25cm; left: 22.3cm;">$busTime</div>
+  <div class="field" style="top: 10.3cm; left: 18.4cm;">$seatNumber</div>
+  <div class="field" style="top: 10.3cm; left: 23.9cm;">$totalSeat</div>
+  <div class="field" style="top: 11.3cm; left: 18.4cm;">₹$cash</div>
+  <div class="field" style="top: 11.3cm; left: 22.2cm;">₹$pending</div>
 
 </body>
 </html>

@@ -317,8 +317,6 @@ class BookingController extends ChangeNotifier {
         bookings.add(booking);
       }
     }
-
-    print("bookings : ${bookings.length}");
     return bookings;
   }
 }

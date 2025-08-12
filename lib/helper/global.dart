@@ -415,8 +415,7 @@ class Global {
       String mobileNumber = booking.mobileNumber ?? '';
       if (booking.mobileNumber != null &&
           !booking.mobileNumber!.contains("<br>")) {
-        if (booking.secondaryMobileNumber != null &&
-            booking.secondaryMobileNumber!.isNotEmpty) {
+        if (booking.secondaryMobileNumber != null && booking.secondaryMobileNumber!.isNotEmpty && booking.secondaryMobileNumber! != "0") {
           mobileNumber = '$mobileNumber / ${booking.secondaryMobileNumber}';
         }
       }
